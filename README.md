@@ -176,3 +176,9 @@ internal enum MyEnum
     Value3
 }
 ```
+
+## Warning for security-sensitive data
+
+Do NOT use this generator in security-sensitive contexts,
+because the generated code is optimized for performance and may be vulnerable to certain types of attacks (e.g., timing attacks).
+For such scenarios, consider using a more secure serialization approach that prioritizes security over performance.
