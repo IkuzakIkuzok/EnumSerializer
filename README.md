@@ -1,7 +1,7 @@
 
 # EnumSerializer
 
-A source generator for serializing enums in C#.
+Zero-allocation serialization and deserialization of enums to and from strings enums in C#.
 
 ## Installation
 
