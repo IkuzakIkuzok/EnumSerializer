@@ -209,7 +209,7 @@ namespace {{ns}}
 
         foreach ((var key, var value) in cases)
         {
-            builder.Append($"\t\t\t\t{key}");
+            builder.Append($"                {key}");
             builder.Append(' ', length - key.Length);
             var s_value = string.IsNullOrEmpty(value) ? "string.Empty" : $"\"{value}\"";
             builder.AppendLine($" => {s_value},");
