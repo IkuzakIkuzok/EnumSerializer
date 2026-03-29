@@ -1,0 +1,262 @@
+﻿
+// (c) 2026 Kazuki Kohzuki
+
+#nullable enable
+#pragma warning disable IDE0130
+
+namespace System;
+
+/// <summary>
+/// Represent a type can be used to index a collection either from the start or the end.
+/// </summary>
+/// <remarks>
+/// Index is used by the C# compiler to support the new index syntax
+/// <code>
+/// int[] someArray = new int[5] { 1, 2, 3, 4, 5 } ;
+/// int lastElement = someArray[^1]; // lastElement = 5
+/// </code>
+/// </remarks>
+public readonly struct Index : IEquatable<global::System.Index>
+{
+    private readonly int _value;
+
+    /// <summary>
+    /// Construct an Index using a value and indicating if the index is from the start or from the end.
+    /// </summary>
+    /// <param name="value">The index value. it has to be zero or positive number.</param>
+    /// <param name="fromEnd">Indicating if the index is from the start or from the end.</param>
+    /// <remarks>
+    /// If the Index constructed from the end, index value 1 means pointing at the last element and index value 0 means pointing at beyond last element.
+    /// </remarks>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public Index(int value, bool fromEnd = false)
+    {
+        if (value < 0)
+            throw new global::System.ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
+
+        if (fromEnd)
+            this._value = ~value;
+        else
+            this._value = value;
+    } // ctor (int, [bool])
+
+    // The following private constructors mainly created for perf reason to avoid the checks
+    private Index(int value)
+    {
+        this._value = value;
+    } // ctor (int)
+
+    /// <summary>
+    /// Create an Index pointing at first element.
+    /// </summary>
+    public static global::System.Index Start => new(0);
+
+    /// <summary>
+    /// Create an Index pointing at beyond last element.
+    /// </summary>
+    public static global::System.Index End => new(~0);
+
+    /// <summary>
+    /// Create an Index from the start at the position indicated by the value.
+    /// </summary>
+    /// <param name="value">The index value from the start.</param>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public static global::System.Index FromStart(int value)
+    {
+        if (value < 0)
+            throw new global::System.ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
+
+        return new(value);
+    } // public static global::System.Index FromStart (int)
+
+    /// <summary>
+    /// Create an Index from the end at the position indicated by the value.
+    /// </summary>
+    /// <param name="value">The index value from the end.</param>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public static global::System.Index FromEnd(int value)
+    {
+        if (value < 0)
+            throw new global::System.ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
+
+        return new(~value);
+    } // public static global::System.Index FromEnd (int)
+
+    /// <summary>
+    /// Returns the index value.
+    /// </summary>
+    public int Value
+    {
+        get
+        {
+            if (this._value < 0)
+                return ~this._value;
+            else
+                return this._value;
+        }
+    }
+
+    /// <summary>
+    /// Indicates whether the index is from the start or the end.
+    /// </summary>
+    public bool IsFromEnd => this._value < 0;
+
+    /// <summary>
+    /// Calculate the offset from the start using the giving collection length.
+    /// </summary>
+    /// <param name="length">The length of the collection that the Index will be used with. length has to be a positive value</param>
+    /// <remarks>
+    /// For performance reason, we don't validate the input length parameter and the returned offset value against negative values.
+    /// we don't validate either the returned offset is greater than the input length.
+    /// It is expected Index will be used with collections which always have non negative length/count. If the returned offset is negative and
+    /// then used to index a collection will get out of range exception which will be same affect as the validation.
+    /// </remarks>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public int GetOffset(int length)
+    {
+        var offset = this._value;
+        if (this.IsFromEnd)
+        {
+            // offset = length - (~value)
+            // offset = length + (~(~value) + 1)
+            // offset = length + value + 1
+
+            offset += length + 1;
+        }
+        return offset;
+    } // public int GetOffset (int)
+
+    /// <summary>
+    /// Indicates whether the current Index object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="value">An object to compare with this object</param>
+    override public bool Equals(object? value) => value is Index index && this._value == index._value;
+
+    /// <summary>
+    /// Indicates whether the current Index object is equal to another Index object.
+    /// </summary>
+    /// <param name="other">An object to compare with this object</param>
+    public bool Equals(Index other) => this._value == other._value;
+
+    /// <summary>
+    /// Returns the hash code for this instance.
+    /// </summary>
+    override public int GetHashCode() => this._value;
+
+    /// <summary>
+    /// Converts integer number to an Index.
+    /// </summary>
+    public static implicit operator global::System.Index(int value) => FromStart(value);
+
+    /// <summary>
+    /// Converts the value of the current Index object to its equivalent string representation.
+    /// </summary>
+    override public string ToString()
+    {
+        if (this.IsFromEnd)
+            return "^" + ((uint)this.Value).ToString();
+
+        return ((uint)this.Value).ToString();
+    } // public string ToString ()
+} // public readonly struct Index : IEquatable<global::System.Index>
+
+/// <summary>
+/// Represent a range has start and end indexes.
+/// </summary>
+/// <remarks>
+/// Range is used by the C# compiler to support the range syntax.
+/// <code>
+/// int[] someArray = new int[5] { 1, 2, 3, 4, 5 };
+/// int[] subArray1 = someArray[0..2]; // { 1, 2 }
+/// int[] subArray2 = someArray[1..^0]; // { 2, 3, 4, 5 }
+/// </code>
+/// </remarks>
+/// <remarks>Construct a Range object using the start and end indexes.</remarks>
+/// <param name="start">Represent the inclusive start index of the range.</param>
+/// <param name="end">Represent the exclusive end index of the range.</param>
+public readonly struct Range(global::System.Index start, global::System.Index end) : IEquatable<global::System.Range>
+{
+    /// <summary>
+    /// Represent the inclusive start index of the Range.
+    /// </summary>
+    public global::System.Index Start { get; } = start;
+
+    /// <summary>
+    /// Represent the exclusive end index of the Range.
+    /// </summary>
+    public global::System.Index End { get; } = end;
+
+    /// <summary>
+    /// Indicates whether the current Range object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="value">An object to compare with this object</param>
+    override public bool Equals(object? value) =>
+        value is Range r &&
+        r.Start.Equals(this.Start) &&
+        r.End.Equals(this.End);
+
+    /// <summary>
+    /// Indicates whether the current Range object is equal to another Range object.
+    /// </summary>
+    /// <param name="other">An object to compare with this object</param>
+    public bool Equals(global::System.Range other) => other.Start.Equals(this.Start) && other.End.Equals(this.End);
+
+    /// <summary>
+    /// Returns the hash code for this instance.
+    /// </summary>
+    override public int GetHashCode()
+        => this.Start.GetHashCode() * 31 + this.End.GetHashCode();
+
+    /// <summary>
+    /// Converts the value of the current Range object to its equivalent string representation.
+    /// </summary>
+    override public string ToString()
+        => this.Start + ".." + this.End;
+
+    /// <summary>
+    /// Create a Range object starting from start index to the end of the collection.
+    /// </summary>
+    public static global::System.Range StartAt(global::System.Index start) => new(start, global::System.Index.End);
+
+    /// <summary>
+    /// Create a Range object starting from first element in the collection to the end Index.
+    /// </summary>
+    public static global::System.Range EndAt(Index end) => new(global::System.Index.Start, end);
+
+    /// <summary>
+    /// Create a Range object starting from first element to the end.
+    /// </summary>
+    public static global::System.Range All => new(global::System.Index.Start, global::System.Index.End);
+
+    /// <summary>
+    /// Calculate the start offset and length of range object using a collection length.
+    /// </summary>
+    /// <param name="length">The length of the collection that the range will be used with. length has to be a positive value.</param>
+    /// <remarks>
+    /// For performance reason, we don't validate the input length parameter against negative values.
+    /// It is expected Range will be used with collections which always have non negative length/count.
+    /// We validate the range is inside the length scope though.
+    /// </remarks>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public (int Offset, int Length) GetOffsetAndLength(int length)
+    {
+        int start;
+        var startIndex = this.Start;
+        if (startIndex.IsFromEnd)
+            start = length - startIndex.Value;
+        else
+            start = startIndex.Value;
+
+        int end;
+        var endIndex = this.End;
+        if (endIndex.IsFromEnd)
+            end = length - endIndex.Value;
+        else
+            end = endIndex.Value;
+
+        if ((uint)end > (uint)length || (uint)start > (uint)end)
+            throw new ArgumentOutOfRangeException(nameof(length));
+
+        return (start, end - start);
+    } // public (int Offset, int Length) GetOffsetAndLength (int)
+} // public readonly struct Range : IEquatable<global::System.Range>
