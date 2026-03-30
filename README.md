@@ -1,6 +1,10 @@
 
 # EnumSerializer
 
+[![Version](https://img.shields.io/nuget/v/EnumSerializer?styles=flat)](https://www.nuget.org/packages/EnumSerializer/#versions-body-tab)
+[![Download](https://img.shields.io/nuget/dt/EnumSerializer?styles=flat)](https://www.nuget.org/packages/EnumSerializer/#versions-body-tab)
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/IkuzakIkuzok/EnumSerializer/blob/main/LICENSE)
+
 Zero-allocation serialization and deserialization of enums to and from strings enums in C#.
 
 ## Installation
