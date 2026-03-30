@@ -38,6 +38,7 @@
   <PropertyGroup>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <Company>ikuzak</Company>
     <Description>A source generator for serializing enums in C#.</Description>
     <Copyright>(c) 2026 Kazuki Kohzuki</Copyright>

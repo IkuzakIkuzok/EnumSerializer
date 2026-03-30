@@ -6,7 +6,6 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="EnumSerializer.Package/EnumSerializer.Package.csproj" />
   <Project Path="EnumSerializer.Test/EnumSerializer.Test.csproj" Id="bf399431-2ae9-45a3-9cb0-1e0cd240de2f" />
   <Project Path="EnumSerializer/EnumSerializer.csproj" />
 </Solution>
