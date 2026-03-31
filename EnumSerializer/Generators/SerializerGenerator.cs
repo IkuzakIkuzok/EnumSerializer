@@ -59,10 +59,13 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         if (!hasToLowerInvariantSpan)
             return GenerationMode.StringFallback;
 
+        if (csharpCompilation.LanguageVersion >= LanguageVersion.CSharp14)
+            return GenerationMode.ExtensionMember;
+
         if (csharpCompilation.LanguageVersion >= LanguageVersion.CSharp11)
             return GenerationMode.OptimizedSpanWithPatternMatching;
-        else
-            return GenerationMode.OptimizedSpanWithIfElse;
+        
+        return GenerationMode.OptimizedSpanWithIfElse;
     } // private static bool CheckFeaturesAvailability (Compilation, CancellationToken)
 
     private static void Execute(SourceProductionContext context, (GeneratorAttributeSyntaxContext Left, GenerationMode Right) provider)

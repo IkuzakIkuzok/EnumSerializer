@@ -28,4 +28,12 @@ internal enum GenerationMode
     /// </list>
     /// </summary>
     OptimizedSpanWithPatternMatching,
-}
+
+    /// <summary>
+    /// &gt;= C# 14.0
+    /// <list type="bullet">
+    /// <item>Extension members are supported.</item>
+    /// </list>
+    /// </summary>
+    ExtensionMember,
+} // internal enum GenerationMode

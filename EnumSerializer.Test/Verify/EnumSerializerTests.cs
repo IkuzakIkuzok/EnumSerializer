@@ -13,6 +13,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task SimpleSwitch(LanguageVersion languageVersion)
     {
         // lang=C#
@@ -42,6 +43,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task IgnoreCase(LanguageVersion languageVersion)
     {
         // lang=C#
@@ -71,6 +73,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task DifferentLength(LanguageVersion languageVersion)
     {
         // lang=C#
@@ -99,6 +102,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task EmptyEnum(LanguageVersion languageVersion)
     {
         // lang=C#
@@ -120,6 +124,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task SingleValueEnum(LanguageVersion languageVersion)
     {
         // lang=C#
@@ -142,6 +147,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task ToStringOnly(LanguageVersion languageVersion)
     {
         // lang=C#
@@ -171,6 +177,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task TryParseOnly(LanguageVersion languageVersion)
     {
         // lang=C#
@@ -200,6 +207,7 @@ public sealed class EnumSerializerTests
     [InlineData(LanguageVersion.CSharp6)]
     [InlineData(LanguageVersion.CSharp9)]
     [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
     internal Task IgnoreCaseLong(LanguageVersion languageVersion)
     {
         // lang=C#

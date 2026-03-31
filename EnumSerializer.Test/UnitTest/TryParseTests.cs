@@ -28,4 +28,17 @@ public sealed class TryParseTests
         Assert.True(mustBeSuccess2);
         Assert.Equal(SimpleEnum.Value2, val2);
     } // public void TestIgnoreCase ()
+
+    [Fact]
+    public void StaticExtensions()
+    {
+        var mustBeSuccess = SimpleEnum.TryParseDefaultSerializeValue("val1", out var val1);
+
+        Assert.True(mustBeSuccess);
+        Assert.Equal(SimpleEnum.Value1, val1);
+
+        var mustBeFail = SimpleEnum.TryParseDefaultSerializeValue("VAL1", out var _);
+
+        Assert.False(mustBeFail);
+    } // public void StaticExtensions ()
 } // public sealed class UnitTests

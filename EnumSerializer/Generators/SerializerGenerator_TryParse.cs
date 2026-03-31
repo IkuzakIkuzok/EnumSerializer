@@ -58,7 +58,12 @@ internal sealed partial class SerializerGenerator
             GenerateTryParseFromString(builder, enumName, enumType, target, mode, out var buffer);
             usePooled |= buffer;
         }
+
+        if (mode >= GenerationMode.ExtensionMember)
+            GenerateStaticExtension(builder, enumName, enumType, targetTypes);
     } // private static void GenerateTryParse (StringBuilder, INamedTypeSymbol, IEnumerable<EnumSerializationInfo>, GenerationMode, out bool)
+
+    #region extension method
 
     private static void GenerateTryParseFromString(StringBuilder builder, string enumName, INamedTypeSymbol enumType, EnumSerializationInfo info, GenerationMode mode, out bool usePooled)
     {
@@ -295,4 +300,66 @@ internal sealed partial class SerializerGenerator
             name = name[..^"Attribute".Length];
         return $"TryParse{enumName}From{name}";
     } // private static string GetTryParseMethodName (INamedTypeSymbol, string)
+
+    #endregion extension method
+
+    #region static extension
+
+    private static void GenerateStaticExtension(StringBuilder builder, string enumName, INamedTypeSymbol enumType, IEnumerable<EnumSerializationInfo> targetTypes)
+    {
+        builder.AppendLine($$"""
+
+                    extension ({{enumName}})
+                    {
+                        /// <summary>
+                        /// Deserializes the specified string to a <see cref="{{enumName}}"/> value using the specified serialization attribute.
+                        /// </summary>
+                        /// <typeparam name="TAttr">The serialization attribute type.</typeparam>
+                        /// <param name="text">The string representation of the enum value.</param>
+                        /// <param name="value">When this method returns, contains the deserialized <see cref="{{enumName}}"/> value if the parsing succeeded, or the default value if the parsing failed.</param>
+                        /// <returns>The deserialized <see cref="{{enumName}}"/> value.</returns>
+                        internal static bool TryParse<TAttr>(global::System.ReadOnlySpan<char> text, out {{enumName}} value) where TAttr : global::EnumSerializer.SerializeValueAttribute
+                        {
+                            return TryParse{{enumType.Name}}<TAttr>(text, out value);
+                        }
+            """);
+
+        foreach (var targetType in targetTypes)
+        {
+            if (!targetType.GenerateTryParse) continue;
+
+            var target = targetType.EnumType;
+            if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
+                return;
+
+            var methodName = GetStaticTryParseMethodName(target);
+            builder.AppendLine($$"""
+
+                            /// <summary>
+                            /// Deserializes the specified string to a <see cref="{{enumName}}"/> value using the <see cref="{{target.GetFullyQualifiedName()}}"/> attribute.
+                            /// </summary>
+                            /// <param name="text">The string representation of the enum value.</param>
+                            /// <param name="value">When this method returns, contains the deserialized <see cref="{{enumName}}"/> value if the parsing succeeded, or the default value if the parsing failed.</param>
+                            /// <returns><see langword="true"/> if the parsing succeeded; otherwise, <see langword="false"/>.</returns>
+                            internal static bool {{methodName}}(global::System.ReadOnlySpan<char> text, out {{enumName}} value)
+                            {
+                                return {{GetTryParseMethodName(target, enumType.Name)}}(text, out value);
+                            }
+                """);
+        }
+
+        builder.AppendLine($$"""
+                    }
+            """);
+    } // private static void GenerateStaticExtension (StringBuilder, string, INamedTypeSymbol, IEnumerable<EnumSerializationInfo>)
+
+    private static string GetStaticTryParseMethodName(INamedTypeSymbol target)
+    {
+        var name = target.Name;
+        if (name.EndsWith("Attribute"))
+            name = name[..^"Attribute".Length];
+        return $"TryParse{name}";
+    } // private static string GetTryParseMethodName (INamedTypeSymbol)
+
+    #endregion static extension
 } // internal sealed partial class SerializerGenerator
