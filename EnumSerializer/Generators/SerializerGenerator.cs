@@ -48,7 +48,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
                 var p1 = method.Parameters[0].Type.OriginalDefinition;
                 var p2 = method.Parameters[1].Type.OriginalDefinition;
 
-                if (p1.Name == "ReadOnlySpan" && p2.Name == "Span")
+                if (p1.GetFullyQualifiedName() == "global::System.ReadOnlySpan<T>" && p2.GetFullyQualifiedName() == "global::System.Span<T>")
                 {
                     hasToLowerInvariantSpan = true;
                     break;
@@ -149,13 +149,9 @@ namespace {{ns}}
         if (hasToString)
             GenerateToString(builder, enumType, targetTypes, mode);
 
-        #region TryParse
-
         var hasTryParse = targetTypes.Any(t => t.GenerateTryParse);
         if (hasTryParse)
             GenerateTryParse(builder, enumType, targetTypes, mode, out usePooled);
-
-        #endregion TryParse
 
         builder.AppendLine("""
     }
