@@ -1,0 +1,154 @@
+﻿
+// (c) 2025-2026 Kazuki Kohzuki
+
+using System.Collections.Generic;
+using static EnumSerializer.SymbolUtils;
+
+namespace EnumSerializer.Generators;
+
+internal sealed partial class SerializerGenerator
+{
+    private static void GenerateToString(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<EnumSerializationInfo> targetTypes, GenerationMode mode)
+    {
+        var enumName = enumType.GetFullyQualifiedName();
+
+        builder.AppendLine($$"""
+
+        /// <summary>
+        /// Serializes the specified <see cref="{{enumName}}"/> value to a string using the specified serialization attribute.
+        /// </summary>
+        /// <typeparam name="TAttr">The serialization attribute type.</typeparam>
+        /// <param name="value">The <see cref="{{enumName}}"/> value to serialize.</param>
+        /// <returns>The serialized string representation of the enum value.</returns>
+        internal static string ToString<TAttr>(this {{enumName}} value) where TAttr : global::EnumSerializer.SerializeValueAttribute
+        {
+""");
+
+        foreach (var targetType in targetTypes)
+        {
+            if (!targetType.GenerateToString) continue;
+
+            var target = targetType.EnumType;
+            if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
+                continue;
+
+            var targetFullName = target.GetFullyQualifiedName();
+            builder.AppendLine($$"""
+            if (typeof(TAttr) == typeof({{targetFullName}}))
+                return {{GetSpecialToStringMethodName(target)}}(value);
+
+""");
+        }
+
+        builder.AppendLine($$"""
+            // Fallback to default ToString() if no matching attribute type is found
+            return value.ToString();
+        } // internal static string ToString<TAttr>(this {{enumName}}) where TAttr : global::EnumSerializer.SerializeValueAttribute
+""");
+
+        var canUsePatternMatching = mode >= GenerationMode.OptimizedSpanWithIfElse;
+        foreach (var target in targetTypes)
+        {
+            if (!target.GenerateToString) continue;
+            GenerateSpecialToString(builder, enumName, enumType, target.EnumType, canUsePatternMatching);
+        }
+    } // private static void GenerateToString (StringBuilder, INamedTypeSymbol, IEnumerable<EnumSerializationInfo>, bool)
+
+    private static void GenerateSpecialToString(StringBuilder builder, string enumName, INamedTypeSymbol enumType, INamedTypeSymbol target, bool canUsePatternMatching)
+    {
+        if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
+            return;
+
+        var targetName = target.GetFullName();
+        var targetFullName = target.GetFullyQualifiedName();
+        var methodName = GetSpecialToStringMethodName(target);
+
+        builder.AppendLine($$"""
+
+        /// <summary>
+        /// Serializes the specified <see cref="{{enumName}}"/> value to a string using the <see cref="{{targetFullName}}"/> attribute.
+        /// </summary>
+        /// <param name="value">The <see cref="{{enumName}}"/> value to serialize.</param>
+        /// <returns>The serialized string representation of the enum value.</returns>
+        internal static string {{methodName}}(this {{enumName}} value)
+        {
+""");
+        if (canUsePatternMatching)
+        {
+            builder.AppendLine($$"""
+            return value switch
+            {
+""");
+        }
+        else
+        {
+            builder.AppendLine($$"""
+            switch (value)
+            {
+""");
+        }
+
+        var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
+        var cases = new Dictionary<string, string>();
+        var length = 0;
+        foreach (var field in fields)
+        {
+            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass.GetFullName() == targetName);
+            if (attr is null) continue;
+            var args = attr.ConstructorArguments;
+            if (args.Length == 0) continue;
+            var serializedValue = args[0].Value?.ToString() ?? string.Empty;
+            var key = $"{enumName}.{field.Name}";
+            cases.Add(key, serializedValue);
+            if (key.Length > length)
+                length = key.Length;
+        }
+
+        foreach ((var key, var value) in cases)
+        {
+            var s_value = string.IsNullOrEmpty(value) ? "string.Empty" : $"\"{value}\"";
+            if (canUsePatternMatching)
+            {
+                builder.Append($"                {key}");
+                builder.Append(' ', length - key.Length);
+                builder.AppendLine($" => {s_value},");
+            }
+            else
+            {
+                builder.AppendLine($"                case {key}:");
+                builder.AppendLine($"                    return {s_value};");
+            }
+
+
+        }
+
+        if (canUsePatternMatching)
+        {
+            builder.AppendLine("""
+                _ => value.ToString(),
+            };
+        }
+""");
+        }
+        else
+        {
+            builder.AppendLine("""
+                default:
+                    return value.ToString();
+            }
+        }
+""");
+        }
+
+    } // private static void GenerateSpecialToString (StringBuilder, string, INamedTypeSymbol, INamedTypeSymbol)
+
+    private static string GetSpecialToStringMethodName(INamedTypeSymbol target)
+    {
+        const string Suffix = "Attribute";
+
+        var name = target.Name;
+        if (name.EndsWith(Suffix))
+            name = name[..^Suffix.Length];
+        return $"To{name}";
+    } // private static string GetSpecialToStringMethodName (INamedTypeSymbol)
+} // internal sealed partial class SerializerGenerator
