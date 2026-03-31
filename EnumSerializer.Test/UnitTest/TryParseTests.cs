@@ -3,10 +3,10 @@
 
 namespace EnumSerializer.Test.UnitTest;
 
-public sealed class UnitTests
+public sealed class TryParseTests
 {
     [Fact]
-    public void TestSimple()
+    public void ParseSimple()
     {
         var mustBeSuccess = "val1".TryParseSimpleEnumFromDefaultSerializeValue(out var val1);
 
@@ -17,7 +17,8 @@ public sealed class UnitTests
         Assert.False(mustBeFail);
     } // public void TestSimple ()
 
-    public void TestIgnoreCase()
+    [Fact]
+    public void ParseIgnoreCase()
     {
         var mustBeSuccess1 = "VAL1".TryParseSimpleEnumFromIgnoreCaseTest(out var val1);
         Assert.True(mustBeSuccess1);
