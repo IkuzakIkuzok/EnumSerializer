@@ -1,6 +1,7 @@
 
 # EnumSerializer
 
+[![Test](https://github.com/IkuzakIkuzok/EnumSerializer/actions/workflows/Verify.yml/badge.svg)](https://github.com/IkuzakIkuzok/EnumSerializer/actions/workflows/Verify.yml)
 [![Version](https://img.shields.io/nuget/v/EnumSerializer?styles=flat)](https://www.nuget.org/packages/EnumSerializer/#versions-body-tab)
 [![Download](https://img.shields.io/nuget/dt/EnumSerializer?styles=flat)](https://www.nuget.org/packages/EnumSerializer/#versions-body-tab)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/IkuzakIkuzok/EnumSerializer/blob/main/LICENSE)
