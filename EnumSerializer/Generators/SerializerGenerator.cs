@@ -455,8 +455,8 @@ namespace {{ns}}
             // Case-insensitive and the length of the longest case exceeds the threshold for stack allocation
             builder.AppendLine($$"""
             // `text.Length` may exceed {{MaxStackAllocLength}} here, so we use pooled buffer to avoid stack overflow in case of very long input
-            using var pooled = new global::EnumSerializer.PooledBuffer(text.Length);
-            var lowerText = text.Length <= {{MaxStackAllocLength}} ? stackalloc char[text.Length] : pooled.GetSpan();
+            using global::EnumSerializer.PooledBuffer pooled = new global::EnumSerializer.PooledBuffer(text.Length);
+            global::System.Span<char> lowerText = text.Length <= {{MaxStackAllocLength}} ? stackalloc char[text.Length] : pooled.GetSpan();
             global::System.MemoryExtensions.ToLowerInvariant(text, lowerText);
 
             switch (lowerText)
@@ -468,7 +468,7 @@ namespace {{ns}}
             // Case-insensitive and the length of the longest case does not exceed the threshold for stack allocation
             builder.AppendLine($$"""
             // `text.Length` never exceeds {{length}} here, so we can safely use stack allocation for the lowercase buffer
-            var lowerText = (stackalloc char[text.Length]);
+            global::System.Span<char> lowerText = (stackalloc char[text.Length]);
             global::System.MemoryExtensions.ToLowerInvariant(text, lowerText);
 
             switch (lowerText)

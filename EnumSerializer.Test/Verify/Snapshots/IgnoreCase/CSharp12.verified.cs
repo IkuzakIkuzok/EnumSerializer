@@ -72,7 +72,7 @@ namespace Test
             }
 
             // `text.Length` never exceeds 4 here, so we can safely use stack allocation for the lowercase buffer
-            var lowerText = (stackalloc char[text.Length]);
+            global::System.Span<char> lowerText = (stackalloc char[text.Length]);
             global::System.MemoryExtensions.ToLowerInvariant(text, lowerText);
 
             switch (lowerText)

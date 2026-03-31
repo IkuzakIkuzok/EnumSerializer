@@ -71,8 +71,8 @@ namespace Test
             }
 
             // `text.Length` may exceed 256 here, so we use pooled buffer to avoid stack overflow in case of very long input
-            using var pooled = new global::EnumSerializer.PooledBuffer(text.Length);
-            var lowerText = text.Length <= 256 ? stackalloc char[text.Length] : pooled.GetSpan();
+            using global::EnumSerializer.PooledBuffer pooled = new global::EnumSerializer.PooledBuffer(text.Length);
+            global::System.Span<char> lowerText = text.Length <= 256 ? stackalloc char[text.Length] : pooled.GetSpan();
             global::System.MemoryExtensions.ToLowerInvariant(text, lowerText);
 
             switch (lowerText)
