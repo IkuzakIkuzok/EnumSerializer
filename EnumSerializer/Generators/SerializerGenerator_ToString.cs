@@ -59,7 +59,6 @@ internal sealed partial class SerializerGenerator
         if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
             return;
 
-        var targetName = target.GetFullName();
         var targetFullName = target.GetFullyQualifiedName();
         var methodName = GetSpecialToStringMethodName(target);
 
@@ -88,34 +87,20 @@ internal sealed partial class SerializerGenerator
 """);
         }
 
-        var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
-        var cases = new Dictionary<string, string>();
-        var length = 0;
-        foreach (var field in fields)
-        {
-            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass.GetFullName() == targetName);
-            if (attr is null) continue;
-            var args = attr.ConstructorArguments;
-            if (args.Length == 0) continue;
-            var serializedValue = args[0].Value?.ToString() ?? string.Empty;
-            var key = $"{enumName}.{field.Name}";
-            cases.Add(key, serializedValue);
-            if (key.Length > length)
-                length = key.Length;
-        }
+        var nameValuePairs = GetNameValuePairs(enumType, targetFullName, out var length);
 
-        foreach ((var key, var value) in cases)
+        foreach ((var name, var value) in nameValuePairs)
         {
             var s_value = string.IsNullOrEmpty(value) ? "string.Empty" : $"\"{value}\"";
             if (canUsePatternMatching)
             {
-                builder.Append($"                {key}");
-                builder.Append(' ', length - key.Length);
+                builder.Append($"                {enumName}.{name}");
+                builder.Append(' ', length - name.Length);
                 builder.AppendLine($" => {s_value},");
             }
             else
             {
-                builder.AppendLine($"                case {key}:");
+                builder.AppendLine($"                case {enumName}.{name}:");
                 builder.AppendLine($"                    return {s_value};");
             }
 
@@ -141,6 +126,31 @@ internal sealed partial class SerializerGenerator
         }
 
     } // private static void GenerateSpecialToString (StringBuilder, string, INamedTypeSymbol, INamedTypeSymbol)
+    
+    private static Dictionary<string, string> GetNameValuePairs(INamedTypeSymbol enumType, string targetFullName, out int length)
+    {
+        var cases = new Dictionary<string, string>();
+        length = 0;
+
+        var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
+        foreach (var field in fields)
+        {
+            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass.GetFullyQualifiedName() == targetFullName);
+            if (attr is null) continue;
+
+            var args = attr.ConstructorArguments;
+            if (args.Length == 0) continue;
+
+            var key = field.Name;
+            var serializedValue = args[0].Value?.ToString() ?? string.Empty;
+            cases.Add(key, serializedValue);
+
+            if (key.Length > length)
+                length = key.Length;
+        }
+
+        return cases;
+    } // private static Dictionary<string, string> GetNameValuePairs (INamedTypeSymbol, string, out int)
 
     private static string GetSpecialToStringMethodName(INamedTypeSymbol target)
     {

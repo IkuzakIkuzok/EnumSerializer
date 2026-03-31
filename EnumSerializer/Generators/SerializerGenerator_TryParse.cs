@@ -79,40 +79,28 @@ internal sealed partial class SerializerGenerator
 
         var cs = info.CaseSensitive;
 
-        var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
-        var cases = new Dictionary<string, string>();
-        foreach (var field in fields)
-        {
-            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass?.GetFullyQualifiedName() == targetFullName);
-            if (attr is null) continue;
-            var args = attr.ConstructorArguments;
-            if (args.Length == 0) continue;
-            var serializedValue = args[0].Value?.ToString() ?? string.Empty;
-            if (cases.ContainsKey(serializedValue))
-                continue;
-            cases.Add(serializedValue, field.Name);
-        }
+        var valueNamePairs = GetValueNamePairs(enumType, targetFullName);
 
-        if (cases.Count == 0)
+        if (valueNamePairs.Count == 0)
         {
             GenerateEmptyTryParse(builder, enumName, targetFullName, methodName, canUseSpan);
             return;
         }
 
-        if (cases.Count == 1)
+        if (valueNamePairs.Count == 1)
         {
-            var onlyCase = cases.First();
+            var onlyCase = valueNamePairs.First();
             GenerateOnlyOneTryParse(builder, onlyCase, enumName, targetFullName, methodName, cs, canUseSpan);
             return;
         }
 
         if (!canUseSpan)
         {
-            GenerateLengthBasesSwitchTryParse(builder, cases, enumName, targetFullName, methodName, mode, cs);
+            GenerateLengthBasesSwitchTryParse(builder, valueNamePairs, enumName, targetFullName, methodName, mode, cs);
             return;
         }
 
-        var lengths = cases.Keys.Select(k => k.Length).Distinct().ToArray();
+        var lengths = valueNamePairs.Keys.Select(k => k.Length).Distinct().ToArray();
         var len_op = lengths.Length == 1 ? "!=" : ">";
         var length = lengths.Max();
         usePooled = !cs && length > MaxStackAllocLength;
@@ -171,11 +159,11 @@ internal sealed partial class SerializerGenerator
 """);
         }
 
-        foreach ((var key, var value) in cases)
+        foreach ((var value, var name) in valueNamePairs)
         {
-            var k = cs ? key : key.ToLowerInvariant();
+            var k = cs ? value : value.ToLowerInvariant();
             builder.AppendLine($"                case \"{k}\":"); ;
-            builder.AppendLine($"                    value = {enumName}.{value};");
+            builder.AppendLine($"                    value = {enumName}.{name};");
             builder.AppendLine($"                    return true;");
         }
 
@@ -187,6 +175,29 @@ internal sealed partial class SerializerGenerator
         }
 """);
     } // private static void GenerateTryParseFromString (StringBuilder, string, INamedTypeSymbol, EnumSerializationInfo, GenerationMode, out bool)
+
+    private static Dictionary<string, string> GetValueNamePairs(INamedTypeSymbol enumType, string targetFullName)
+    {
+        var cases = new Dictionary<string, string>();
+
+        var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
+        foreach (var field in fields)
+        {
+            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass?.GetFullyQualifiedName() == targetFullName);
+            if (attr is null) continue;
+
+            var args = attr.ConstructorArguments;
+            if (args.Length == 0) continue;
+
+            var serializedValue = args[0].Value?.ToString() ?? string.Empty;
+            if (cases.ContainsKey(serializedValue))
+                continue;
+
+            cases.Add(serializedValue, field.Name);
+        }
+
+        return cases;
+    } // private static Dictionary<string, string> GetValueNamePairs (INamedTypeSymbol, string)
 
     private static void GenerateEmptyTryParse(StringBuilder builder, string enumName, string targetFullName, string methodName, bool canUseSpan)
     {
@@ -240,7 +251,7 @@ internal sealed partial class SerializerGenerator
 """);
     } // private static void GenerateOnlyOneTryParse (StringBuilder, KeyValuePair<string, string>, string, string, string, bool)
 
-    private static void GenerateLengthBasesSwitchTryParse(StringBuilder builder, Dictionary<string, string> cases, string enumName, string targetFullName, string methodName, GenerationMode mode, bool cs)
+    private static void GenerateLengthBasesSwitchTryParse(StringBuilder builder, Dictionary<string, string> valueNamePairs, string enumName, string targetFullName, string methodName, GenerationMode mode, bool cs)
     {
         var canUseSpan = mode >= GenerationMode.OptimizedSpanWithIfElse;
         var inputType = canUseSpan ? "global::System.ReadOnlySpan<char>" : "string";
@@ -249,7 +260,7 @@ internal sealed partial class SerializerGenerator
         var comment = cs ? "Comparison is case-sensitive." : "Comparison is case-insensitive.";
 
         var byLen =
-            cases.GroupBy(c => c.Key.Length)
+            valueNamePairs.GroupBy(c => c.Key.Length)
                  .ToDictionary(g => g.Key, g => g.ToList());
 
         builder.AppendLine($$"""
