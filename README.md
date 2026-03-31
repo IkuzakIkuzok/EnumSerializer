@@ -182,6 +182,19 @@ internal enum MyEnum
 }
 ```
 
+## Benchmarks
+
+### Parse performance
+
+Parse 10 enum values from their string representations using both the standard `Enum<T>.TryParse()` method and the generated try-parse method from this generator.
+
+| Method                       | Mean      | Error    | StdDev   | Ratio | RatioSD |
+|----------------------------- |----------:|---------:|---------:|------:|--------:|
+| ParseStandard                | 244.33 ns | 2.347 ns | 2.195 ns |  1.00 |    0.00 |
+| **ParseGenerated**           |  31.19 ns | 0.446 ns | 0.395 ns |  0.13 |    0.00 |
+| ParseStandardIgnoreCase      | 337.83 ns | 3.093 ns | 2.894 ns |  1.38 |    0.02 |
+| **ParseGeneratedIgnoreCase** | 121.84 ns | 0.544 ns | 0.425 ns |  0.50 |    0.00 |
+
 ## Warning for security-sensitive data
 
 Do NOT use this generator in security-sensitive contexts,
