@@ -26,6 +26,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EnumSerializer\EnumSerializer.csproj" />
+    <ProjectReference Include="..\EnumSerializer\EnumSerializer.csproj"
+                    OutputItemType="Analyzer"
+                    ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-name: Verify Tests
+name: Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  Verify:
+  Tests:
     runs-on: windows-latest
 
     steps:
