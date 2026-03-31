@@ -93,8 +93,6 @@ internal sealed partial class SerializerGenerator
             cases.Add(serializedValue, field.Name);
         }
 
-        var comment = cs ? "Comparison is case-sensitive." : "Comparison is case-insensitive.";
-
         if (cases.Count == 0)
         {
             GenerateEmptyTryParse(builder, enumName, targetFullName, methodName, canUseSpan);
@@ -118,6 +116,8 @@ internal sealed partial class SerializerGenerator
         var len_op = lengths.Length == 1 ? "!=" : ">";
         var length = lengths.Max();
         usePooled = !cs && length > MaxStackAllocLength;
+
+        var comment = cs ? "Comparison is case-sensitive." : "Comparison is case-insensitive.";
 
         builder.AppendLine($$"""
 
