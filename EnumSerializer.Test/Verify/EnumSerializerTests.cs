@@ -84,8 +84,10 @@ public sealed class EnumSerializerTests
             {
                 [DefaultSerializeValueAttribute("v1")]
                 Value1,
+
                 [DefaultSerializeValueAttribute("val2")]
                 Value2,
+
                 [DefaultSerializeValueAttribute("value3")]
                 Value3
             }
@@ -182,8 +184,10 @@ public sealed class EnumSerializerTests
             {
                 [DefaultSerializeValueAttribute("val1")]
                 Value1,
+
                 [DefaultSerializeValueAttribute("val2")]
                 Value2,
+
                 [DefaultSerializeValueAttribute("val3")]
                 Value3
             }
@@ -191,6 +195,33 @@ public sealed class EnumSerializerTests
 
         return RunTest(source, languageVersion);
     } // internal Task TryParseOnly (LanguageVersion)
+
+    [Theory]
+    [InlineData(LanguageVersion.CSharp6)]
+    [InlineData(LanguageVersion.CSharp9)]
+    [InlineData(LanguageVersion.CSharp12)]
+    internal Task IgnoreCaseLong(LanguageVersion languageVersion)
+    {
+        // lang=C#
+        const string source = """
+            using EnumSerializer;
+
+            namespace Test;
+
+            [EnumSerializable(typeof(DefaultSerializeValueAttribute), CaseSensitive = false)]
+            internal enum MyEnum
+            {
+                [DefaultSerializeValueAttribute("Short literal")]
+                Short,
+
+                // 774 characters
+                [DefaultSerializeValueAttribute("An exceptionally elongated string literal meticulously constructed for the explicit purpose of rigorously evaluating the boundary conditions and threshold capacities of high-performance zero-allocation serialization algorithms relying heavily on raw memory manipulation techniques such as ref byte references and span slicing within custom-built Source Generator outputs, specifically intended to trigger dynamic buffer reallocation pathways, aggressively expose potential stack overflow vulnerabilities, and thoroughly validate the robust handling of continuous contiguous memory blocks significantly exceeding the standard two-hundred-and-fifty-six-byte stack-allocated threshold limit without compromising execution speed or introducing hidden garbage collection overhead")]
+                VeryLong,
+            }
+            """;
+
+        return RunTest(source, languageVersion);
+    } // internal Task LongLiterals (LanguageVersion)
 
     private static Task RunTest(string source, LanguageVersion languageVersion, [CallerMemberName] string testName = "")
     {
