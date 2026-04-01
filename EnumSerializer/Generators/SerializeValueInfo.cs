@@ -56,6 +56,8 @@ internal sealed class SerializeValueInfo
         if (args.Length == 0) return default;
         if (args[0].Value is not INamedTypeSymbol enumType) return default;
 
+        var argSyntaxList = attribute.ArgumentSyntaxList;
+
         var caseSensitive = true;
         if (attribute.TryGetNamedArgumentValue("CaseSensitive", out bool cs))
             caseSensitive = cs;
@@ -65,36 +67,14 @@ internal sealed class SerializeValueInfo
         if (attribute.TryGetNamedArgumentEnumValue<ExtensionMethods>("Methods", out var m))
         {
             methods = m;
-            methodLocation = GetAttributeNamedArgumentSyntax(attribute, "Methods")?.GetLocation();
+            methodLocation = argSyntaxList?["Methods"]?.GetLocation();
         }
 
         var location = attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation();
-        var attrLocation = GetAttributeArgumentSyntax(attribute, 0)?.GetLocation();
+        var attrLocation = argSyntaxList?[0]?.GetLocation();
 
         return new(enumType, caseSensitive, methods, location, attrLocation, methodLocation);
     } // internal static SerializeValueInfo? Create (AttributeData)
-
-    private static AttributeArgumentSyntax? GetAttributeArgumentSyntax(AttributeData attribute, int index)
-    {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax() is not AttributeSyntax attributeSyntax) return null;
-        if (attributeSyntax.ArgumentList is not AttributeArgumentListSyntax argumentList) return null;
-        if ((uint)index >= (uint)argumentList.Arguments.Count) return null;
-        return argumentList.Arguments[index];
-    } // private static AttributeArgumentSyntax? GetAttributeArgumentSyntax (AttributeData, int)
-
-    private static AttributeArgumentSyntax? GetAttributeNamedArgumentSyntax(AttributeData attribute, string name)
-    {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax() is not AttributeSyntax attributeSyntax) return null;
-        if (attributeSyntax.ArgumentList is not AttributeArgumentListSyntax argumentList) return null;
-
-        foreach (var argument in argumentList.Arguments)
-        {
-            if (argument.NameEquals?.Name.Identifier.Text == name)
-                return argument;
-        }
-
-        return null;
-    } // private static AttributeArgumentSyntax? GetAttributeNamedArgumentSyntax (AttributeData, string)
 
     internal sealed class EqualityComparer : IEqualityComparer<SerializeValueInfo>
     {

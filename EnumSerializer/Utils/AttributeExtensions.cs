@@ -7,6 +7,16 @@ internal static class AttributeExtensions
 {
     extension (AttributeData attribute)
     {
+        internal ArgumentSyntaxList? ArgumentSyntaxList
+        {
+            get
+            {
+                if (attribute.ApplicationSyntaxReference?.GetSyntax() is not AttributeSyntax attributeSyntax) return null;
+                if (attributeSyntax.ArgumentList is not AttributeArgumentListSyntax argumentList) return null;
+                return new(argumentList);
+            }
+        }
+
         /// <summary>
         /// Attempts to retrieve the value of a named argument from the attribute and cast it to the specified type.
         /// </summary>
@@ -57,4 +67,31 @@ internal static class AttributeExtensions
     {
         public static readonly System.Collections.Generic.HashSet<int> ValidValues = [.. Enumerable.Cast<int>(Enum.GetValues(typeof(T)))];
     } // private static class EnumCache<T> where T : struct, Enum
+
+    internal class ArgumentSyntaxList(AttributeArgumentListSyntax argumentList)
+    {
+        private readonly SeparatedSyntaxList<AttributeArgumentSyntax> _argumentList = argumentList.Arguments;
+
+        internal AttributeArgumentSyntax? this[int index]
+        {
+            get
+            {
+                if ((uint)index >= (uint)this._argumentList.Count) return null;
+                return this._argumentList[index];
+            }
+        }
+
+        internal AttributeArgumentSyntax? this[string name]
+        {
+            get
+            {
+                foreach (var argument in this._argumentList)
+                {
+                    if (argument.NameEquals?.Name.Identifier.Text == name)
+                        return argument;
+                }
+                return null;
+            }
+        }
+    } // internal class AttributeArgumentList
 } // internal static class AttributeExtensions
