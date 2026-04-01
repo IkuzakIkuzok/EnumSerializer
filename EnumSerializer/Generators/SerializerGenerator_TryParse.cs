@@ -174,7 +174,7 @@ internal sealed partial class SerializerGenerator
     {
         var cases = new Dictionary<string, string>();
 
-        var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
+        var fields = enumType.StaticFields;
         foreach (var field in fields)
         {
             var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass?.FullyQualifiedName == targetFullName);

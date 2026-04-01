@@ -1,6 +1,8 @@
 ﻿
 // (c) 2026 Kazuki Kohzuki
 
+using System.Collections.Generic;
+
 namespace EnumSerializer.Utils;
 
 internal static class TypeSymbolExtensions
@@ -37,5 +39,8 @@ internal static class TypeSymbolExtensions
         } // internal bool InheritsFrom (string)
 
         #endregion inheritance
+
+        internal IEnumerable<IFieldSymbol> StaticFields
+            => symbol.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
     }
 } // internal static class NamedTypeSymbolExtensions
