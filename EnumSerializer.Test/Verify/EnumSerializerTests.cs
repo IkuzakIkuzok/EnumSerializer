@@ -231,6 +231,44 @@ public sealed class EnumSerializerTests
         return RunTest(source, languageVersion);
     } // internal Task LongLiterals (LanguageVersion)
 
+    [Theory]
+    [InlineData(LanguageVersion.CSharp6)]
+    [InlineData(LanguageVersion.CSharp9)]
+    [InlineData(LanguageVersion.CSharp12)]
+    [InlineData(LanguageVersion.CSharp14)]
+    internal Task InvalidArguments(LanguageVersion languageVersion)
+    {
+        /*
+         * Invarid arguments should be ignored and other valid attributes should work as expected. 
+         * In this case, the second EnumSerializable attribute has an invalid type argument (string), 
+         * but the first one is valid, so the generator should generate code based on the first attribute 
+         * and ignore the second one.
+         */
+
+        // lang=C#
+        const string source = """
+            using EnumSerializer;
+
+            namespace Test;
+
+            [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
+            [EnumSerializable(typeof(string))] // Invalid attribute type
+            internal enum MyEnum
+            {
+                [DefaultSerializeValueAttribute("val1")]
+                Value1,
+
+                [DefaultSerializeValueAttribute("val2")]
+                Value2,
+
+                [DefaultSerializeValueAttribute("val3")]
+                Value3
+            }
+            """;
+
+        return RunTest(source, languageVersion);
+    } // internal Task InvalidArguments (LanguageVersion)
+
     private static Task RunTest(string source, LanguageVersion languageVersion, [CallerMemberName] string testName = "")
     {
         var driver = GeneratorTestHelper.GetDriver(source, languageVersion);

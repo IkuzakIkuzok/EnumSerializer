@@ -35,7 +35,7 @@ internal sealed partial class SerializerGenerator
 
             var target = targetType.EnumType;
             if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
-                return;
+                continue;
 
             var targetFullName = target.GetFullyQualifiedName();
             builder.AppendLine($$"""
@@ -341,7 +341,7 @@ internal sealed partial class SerializerGenerator
 
             var target = targetType.EnumType;
             if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
-                return;
+                continue;
 
             var methodName = GetStaticTryParseMethodName(target);
             builder.AppendLine($$"""
