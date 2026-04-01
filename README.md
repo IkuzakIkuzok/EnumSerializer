@@ -10,7 +10,7 @@ Zero-allocation serialization and deserialization of enums to and from strings e
 
 ## Installation
 
-You can install the EnumSerializer from [NuGet](https://www.nuget.org/packages/EnumSerializer/):
+You can install the EnumSerializer from [NuGet](https://www.nuget.org/packages/EnumSerializer/).
 
 ## Usage
 
