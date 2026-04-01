@@ -183,7 +183,7 @@ internal sealed partial class SerializerGenerator
             var args = attr.ConstructorArguments;
             if (args.Length == 0) continue;
 
-            var serializedValue = args[0].Value?.ToString() ?? string.Empty;
+            if (args[0].Value is not string serializedValue) serializedValue = string.Empty;
             if (cases.ContainsKey(serializedValue))
                 continue;
 

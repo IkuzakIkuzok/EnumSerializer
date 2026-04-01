@@ -136,7 +136,7 @@ internal sealed partial class SerializerGenerator
             if (args.Length == 0) continue;
 
             var key = field.Name;
-            var serializedValue = args[0].Value?.ToString() ?? string.Empty;
+            if (args[0].Value is not string serializedValue) serializedValue = string.Empty;
             cases.Add(key, serializedValue);
 
             if (key.Length > length)
