@@ -1,6 +1,7 @@
 ﻿
 // (c) 2025-2026 Kazuki Kohzuki
 
+using EnumSerializer.Utils;
 using System.Collections.Generic;
 
 namespace EnumSerializer.Generators;
@@ -9,7 +10,7 @@ internal sealed partial class SerializerGenerator
 {
     private static void GenerateToString(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<EnumSerializationInfo> targetTypes, GenerationMode mode)
     {
-        var enumName = enumType.GetFullyQualifiedName();
+        var enumName = enumType.FullyQualifiedName;
 
         builder.AppendLine($$"""
 
@@ -28,7 +29,7 @@ internal sealed partial class SerializerGenerator
             if (!targetType.GenerateToString) continue;
 
             var target = targetType.EnumType;
-            var targetFullName = target.GetFullyQualifiedName();
+            var targetFullName = target.FullyQualifiedName;
             builder.AppendLine($$"""
             if (typeof(TAttr) == typeof({{targetFullName}}))
                 return {{GetSpecialToStringMethodName(target)}}(value);
@@ -52,7 +53,7 @@ internal sealed partial class SerializerGenerator
 
     private static void GenerateSpecialToString(StringBuilder builder, string enumName, INamedTypeSymbol enumType, INamedTypeSymbol target, bool canUsePatternMatching)
     {
-        var targetFullName = target.GetFullyQualifiedName();
+        var targetFullName = target.FullyQualifiedName;
         var methodName = GetSpecialToStringMethodName(target);
 
         builder.AppendLine($$"""
@@ -128,7 +129,7 @@ internal sealed partial class SerializerGenerator
         var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
         foreach (var field in fields)
         {
-            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass.GetFullyQualifiedName() == targetFullName);
+            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass?.FullyQualifiedName == targetFullName);
             if (attr is null) continue;
 
             var args = attr.ConstructorArguments;

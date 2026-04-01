@@ -1,6 +1,7 @@
 ﻿
 // (c) 2025-2026 Kazuki Kohzuki
 
+using EnumSerializer.Utils;
 using System.Collections.Generic;
 
 namespace EnumSerializer.Generators;
@@ -13,7 +14,7 @@ internal sealed partial class SerializerGenerator
         var canUseSpan = mode >= GenerationMode.OptimizedSpanWithIfElse;
 
         var enumShortName = enumType.Name;
-        var enumName = enumType.GetFullyQualifiedName();
+        var enumName = enumType.FullyQualifiedName;
 
         var inputType = canUseSpan ? "global::System.ReadOnlySpan<char>" : "string";
 
@@ -33,7 +34,7 @@ internal sealed partial class SerializerGenerator
             if (!targetType.GenerateTryParse) continue;
 
             var target = targetType.EnumType;
-            var targetFullName = target.GetFullyQualifiedName();
+            var targetFullName = target.FullyQualifiedName;
             builder.AppendLine($$"""
             if (typeof(TAttr) == typeof({{targetFullName}}))
                 return {{GetTryParseMethodName(target, enumShortName)}}(text, out value);
@@ -67,7 +68,7 @@ internal sealed partial class SerializerGenerator
         var canUseSpan = mode >= GenerationMode.OptimizedSpanWithPatternMatching;
 
         var target = info.EnumType;
-        var targetFullName = target.GetFullyQualifiedName();
+        var targetFullName = target.FullyQualifiedName;
         var methodName = GetTryParseMethodName(target, enumType.Name);
 
         var cs = info.CaseSensitive;
@@ -176,7 +177,7 @@ internal sealed partial class SerializerGenerator
         var fields = enumType.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsStatic);
         foreach (var field in fields)
         {
-            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass?.GetFullyQualifiedName() == targetFullName);
+            var attr = field.GetAttributes().FirstOrDefault(a => a.AttributeClass?.FullyQualifiedName == targetFullName);
             if (attr is null) continue;
 
             var args = attr.ConstructorArguments;
@@ -337,7 +338,7 @@ internal sealed partial class SerializerGenerator
             builder.AppendLine($$"""
 
                             /// <summary>
-                            /// Deserializes the specified string to a <see cref="{{enumName}}"/> value using the <see cref="{{target.GetFullyQualifiedName()}}"/> attribute.
+                            /// Deserializes the specified string to a <see cref="{{enumName}}"/> value using the <see cref="{{target.FullyQualifiedName}}"/> attribute.
                             /// </summary>
                             /// <param name="text">The string representation of the enum value.</param>
                             /// <param name="value">When this method returns, contains the deserialized <see cref="{{enumName}}"/> value if the parsing succeeded, or the default value if the parsing failed.</param>

@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace EnumSerializer;
+namespace EnumSerializer.Utils;
 
 internal static class DeconstructExtension
 {

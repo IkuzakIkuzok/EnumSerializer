@@ -1,6 +1,7 @@
 ﻿
 // (c) 2025-2026 Kazuki Kohzuki
 
+using EnumSerializer.Utils;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -75,7 +76,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
                 var p1 = method.Parameters[0].Type.OriginalDefinition;
                 var p2 = method.Parameters[1].Type.OriginalDefinition;
 
-                if (p1.GetFullyQualifiedName() == "global::System.ReadOnlySpan<T>" && p2.GetFullyQualifiedName() == "global::System.Span<T>")
+                if (p1?.FullyQualifiedName == "global::System.ReadOnlySpan<T>" && p2?.FullyQualifiedName == "global::System.Span<T>")
                 {
                     hasToLowerInvariantSpan = true;
                     break;
@@ -117,7 +118,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         try
         {
             var attrs =
-                type.Attributes.Where(a => a.AttributeClass.GetFullName() == AttributeFullName)
+                type.Attributes.Where(a => a.AttributeClass?.FullName == AttributeFullName)
                                .Select(GetEnumSerializationInfo)
                                .OfType<EnumSerializationInfo>();
 
@@ -126,7 +127,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
             var targets = new HashSet<EnumSerializationInfo>(new EnumSerializationInfo.EqualityComparer());
             foreach (var attr in attrs)
             {
-                if (!SymbolUtils.CheckInheritance(attr.EnumType, "EnumSerializer.SerializeValueAttribute"))
+                if (!attr.EnumType.InheritsFrom("global::EnumSerializer.SerializeValueAttribute"))
                 {
                     var diagnostic = Diagnostic.Create(
                         descriptor: InvalidAttributeInheritance,
@@ -227,7 +228,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
             return;
 
         var enumShortName = enumType.Name;
-        var enumName = enumType.GetFullyQualifiedName();
+        var enumName = enumType.FullyQualifiedName;
 
         var ns = enumType.ContainingNamespace.ToDisplayString();
 
