@@ -3,8 +3,6 @@
 
 //using SourceGeneratorUtils;
 
-using Microsoft.CodeAnalysis.Diagnostics;
-
 namespace EnumSerializer;
 
 /// <summary>
@@ -15,22 +13,11 @@ internal static class SymbolUtils
     #region Symbol name
 
     /// <summary>
-    /// Gets the fully qualified name of the attribute.
-    /// </summary>
-    /// <param name="attribute">The attribute.</param>
-    /// <param name="context">The context.</param>
-    /// <returns>The fully qualified name.</returns>
-    internal static string GetGetFullyQualifiedName(this AttributeSyntax attribute, SyntaxNodeAnalysisContext context)
-    {
-        var symbol = context.SemanticModel.GetSymbolInfo(attribute).Symbol;
-        return symbol?.GetFullName() ?? string.Empty;
-    } // internal static string GetGetFullyQualifiedName (AttributeSyntax, SyntaxNodeAnalysisContext)
-
-    /// <summary>
     /// Gets the full name of a named type symbol.
     /// </summary>
     /// <param name="symbol">The named type symbol.</param>
     /// <returns>The full name of the symbol without 'global::'.</returns>
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(symbol))]
     internal static string? GetFullName(this ISymbol? symbol)
         => symbol?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
 
@@ -39,7 +26,7 @@ internal static class SymbolUtils
     /// </summary>
     /// <param name="symbol">The symbol.</param>
     /// <returns>The fully qualified name.</returns>
-    [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(symbol))]
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(symbol))]
     internal static string? GetFullyQualifiedName(this ISymbol? symbol)
         => symbol?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included));
 
