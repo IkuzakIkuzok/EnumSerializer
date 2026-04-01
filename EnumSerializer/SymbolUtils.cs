@@ -3,6 +3,8 @@
 
 //using SourceGeneratorUtils;
 
+using Microsoft.CodeAnalysis.Diagnostics;
+
 namespace EnumSerializer;
 
 /// <summary>
@@ -18,7 +20,7 @@ internal static class SymbolUtils
     /// <param name="attribute">The attribute.</param>
     /// <param name="context">The context.</param>
     /// <returns>The fully qualified name.</returns>
-    internal static string GetGetFullyQualifiedName(this global::Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax attribute, global::Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext context)
+    internal static string GetGetFullyQualifiedName(this AttributeSyntax attribute, SyntaxNodeAnalysisContext context)
     {
         var symbol = context.SemanticModel.GetSymbolInfo(attribute).Symbol;
         return symbol?.GetFullName() ?? string.Empty;
@@ -29,8 +31,8 @@ internal static class SymbolUtils
     /// </summary>
     /// <param name="symbol">The named type symbol.</param>
     /// <returns>The full name of the symbol without 'global::'.</returns>
-    internal static string? GetFullName(this global::Microsoft.CodeAnalysis.ISymbol? symbol)
-        => symbol?.ToDisplayString(global::Microsoft.CodeAnalysis.SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(global::Microsoft.CodeAnalysis.SymbolDisplayGlobalNamespaceStyle.Omitted));
+    internal static string? GetFullName(this ISymbol? symbol)
+        => symbol?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
 
     /// <summary>
     /// Obtains the fully qualified name of the class, including 'global::' prefix.
@@ -38,8 +40,8 @@ internal static class SymbolUtils
     /// <param name="symbol">The symbol.</param>
     /// <returns>The fully qualified name.</returns>
     [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(symbol))]
-    internal static string? GetFullyQualifiedName(this global::Microsoft.CodeAnalysis.ISymbol? symbol)
-        => symbol?.ToDisplayString(global::Microsoft.CodeAnalysis.SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(global::Microsoft.CodeAnalysis.SymbolDisplayGlobalNamespaceStyle.Included));
+    internal static string? GetFullyQualifiedName(this ISymbol? symbol)
+        => symbol?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included));
 
     #endregion Symbol name
 
@@ -53,7 +55,7 @@ internal static class SymbolUtils
     /// <param name="argumentName">The name of the argument to retrieve.</param>
     /// <param name="value">When this method returns, contains the value of the named argument if found and successfully cast to the expected type; otherwise, the default value of <typeparamref name="T"/>.</param>
     /// <returns><see langword="true"/> if the named argument is found and its value can be cast to the expected type; otherwise, <see langword="false"/>.</returns>
-    internal static bool TryGetNamedArgumentValue<T>(this global::Microsoft.CodeAnalysis.AttributeData attribute, string argumentName, out T? value)
+    internal static bool TryGetNamedArgumentValue<T>(this AttributeData attribute, string argumentName, out T? value)
     {
         foreach (var namedArg in attribute.NamedArguments)
         {
@@ -66,7 +68,7 @@ internal static class SymbolUtils
         return false;
     } // internal static bool TryGetNamedArgumentValue<T> (this AttributeData, string, out T)
 
-    internal static bool TryGetNamedArgumentEnumValue<TEnum>(this global::Microsoft.CodeAnalysis.AttributeData attribute, string argumentName, out TEnum value) where TEnum : struct, global::System.Enum
+    internal static bool TryGetNamedArgumentEnumValue<TEnum>(this AttributeData attribute, string argumentName, out TEnum value) where TEnum : struct, Enum
     {
         foreach (var namedArg in attribute.NamedArguments)
         {
@@ -80,10 +82,9 @@ internal static class SymbolUtils
         return false;
     } // internal static bool TryGetNamedArgumentEnumValue<TEnum> (this AttributeData, string, out TEnum)
 
-    private static class EnumCache<T> where T : struct, global::System.Enum
+    private static class EnumCache<T> where T : struct, Enum
     {
-        public static readonly global::System.Collections.Generic.HashSet<int> ValidValues =
-            new(global::System.Linq.Enumerable.Cast<int>(global::System.Enum.GetValues(typeof(T))));
+        public static readonly System.Collections.Generic.HashSet<int> ValidValues = [.. Enumerable.Cast<int>(Enum.GetValues(typeof(T)))];
     }
 
     #endregion Attribute argument
