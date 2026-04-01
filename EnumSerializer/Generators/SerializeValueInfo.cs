@@ -78,6 +78,10 @@ internal sealed class SerializeValueInfo
 
     internal sealed class EqualityComparer : IEqualityComparer<SerializeValueInfo>
     {
+        internal static EqualityComparer Default => field ??= new();
+
+        private EqualityComparer() { }
+
         public bool Equals(SerializeValueInfo? x, SerializeValueInfo? y)
         {
             if (ReferenceEquals(x, y)) return true;

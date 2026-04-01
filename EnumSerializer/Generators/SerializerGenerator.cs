@@ -124,7 +124,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
 
             if (!attrs.Any()) return;
 
-            var targets = new HashSet<SerializeValueInfo>(new SerializeValueInfo.EqualityComparer());
+            var targets = new HashSet<SerializeValueInfo>(SerializeValueInfo.EqualityComparer.Default);
             foreach (var attr in attrs)
             {
                 if (!attr.AttributeType.InheritsFrom("global::EnumSerializer.SerializeValueAttribute"))
