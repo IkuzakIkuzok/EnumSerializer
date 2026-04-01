@@ -2,7 +2,6 @@
 // (c) 2025-2026 Kazuki Kohzuki
 
 using System.Collections.Generic;
-using static EnumSerializer.SymbolUtils;
 
 namespace EnumSerializer.Generators;
 
@@ -34,9 +33,6 @@ internal sealed partial class SerializerGenerator
             if (!targetType.GenerateTryParse) continue;
 
             var target = targetType.EnumType;
-            if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
-                continue;
-
             var targetFullName = target.GetFullyQualifiedName();
             builder.AppendLine($$"""
             if (typeof(TAttr) == typeof({{targetFullName}}))
@@ -71,9 +67,6 @@ internal sealed partial class SerializerGenerator
         var canUseSpan = mode >= GenerationMode.OptimizedSpanWithPatternMatching;
 
         var target = info.EnumType;
-        if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
-            return;
-
         var targetFullName = target.GetFullyQualifiedName();
         var methodName = GetTryParseMethodName(target, enumType.Name);
 
@@ -340,9 +333,6 @@ internal sealed partial class SerializerGenerator
             if (!targetType.GenerateTryParse) continue;
 
             var target = targetType.EnumType;
-            if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
-                continue;
-
             var methodName = GetStaticTryParseMethodName(target);
             builder.AppendLine($$"""
 

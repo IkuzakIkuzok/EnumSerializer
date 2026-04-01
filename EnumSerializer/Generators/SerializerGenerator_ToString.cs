@@ -2,7 +2,6 @@
 // (c) 2025-2026 Kazuki Kohzuki
 
 using System.Collections.Generic;
-using static EnumSerializer.SymbolUtils;
 
 namespace EnumSerializer.Generators;
 
@@ -29,9 +28,6 @@ internal sealed partial class SerializerGenerator
             if (!targetType.GenerateToString) continue;
 
             var target = targetType.EnumType;
-            if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
-                continue;
-
             var targetFullName = target.GetFullyQualifiedName();
             builder.AppendLine($$"""
             if (typeof(TAttr) == typeof({{targetFullName}}))
@@ -56,9 +52,6 @@ internal sealed partial class SerializerGenerator
 
     private static void GenerateSpecialToString(StringBuilder builder, string enumName, INamedTypeSymbol enumType, INamedTypeSymbol target, bool canUsePatternMatching)
     {
-        if (!CheckInheritance(target, "EnumSerializer.SerializeValueAttribute"))
-            return;
-
         var targetFullName = target.GetFullyQualifiedName();
         var methodName = GetSpecialToStringMethodName(target);
 

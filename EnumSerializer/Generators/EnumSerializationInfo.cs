@@ -17,14 +17,20 @@ internal sealed class EnumSerializationInfo
 
     internal bool GenerateTryParse { get; }
 
-    internal EnumSerializationInfo(INamedTypeSymbol enumType, bool caseSensitive, ExtensionMethods methods)
+    internal Location? TypeLocation { get; }
+
+    internal Location? ExtensionMethodsLocation { get; }
+
+    internal EnumSerializationInfo(INamedTypeSymbol enumType, bool caseSensitive, ExtensionMethods methods, Location? typeLocation, Location? extensionMethodsLocation)
     {
         this.EnumType = enumType;
         this.ExtensionMethods = methods;
         this.CaseSensitive = caseSensitive;
         this.GenerateToString = methods.HasFlag(ExtensionMethods.ToString);
         this.GenerateTryParse = methods.HasFlag(ExtensionMethods.TryParse);
-    } // ctor (INamedTypeSymbol, bool, ExtensionMethods)
+        this.TypeLocation = typeLocation;
+        this.ExtensionMethodsLocation = extensionMethodsLocation;
+    } // ctor (INamedTypeSymbol, bool, ExtensionMethods, Location?, Location?)
 
     internal sealed class EqualityComparer : IEqualityComparer<EnumSerializationInfo>
     {
