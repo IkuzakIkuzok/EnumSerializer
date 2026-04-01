@@ -119,20 +119,20 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         {
             var attrs =
                 type.Attributes.Where(a => a.AttributeClass?.FullName == AttributeFullName)
-                               .Select(GetEnumSerializationInfo)
-                               .OfType<EnumSerializationInfo>();
+                               .Select(SerializeValueInfo.Create)
+                               .OfType<SerializeValueInfo>();
 
             if (!attrs.Any()) return;
 
-            var targets = new HashSet<EnumSerializationInfo>(new EnumSerializationInfo.EqualityComparer());
+            var targets = new HashSet<SerializeValueInfo>(new SerializeValueInfo.EqualityComparer());
             foreach (var attr in attrs)
             {
-                if (!attr.EnumType.InheritsFrom("global::EnumSerializer.SerializeValueAttribute"))
+                if (!attr.AttributeType.InheritsFrom("global::EnumSerializer.SerializeValueAttribute"))
                 {
                     var diagnostic = Diagnostic.Create(
                         descriptor: InvalidAttributeInheritance,
-                        location: attr.TypeLocation,
-                        messageArgs: attr.EnumType.Name
+                        location: attr.AttributeLocation,
+                        messageArgs: attr.AttributeType.Name
                     );
                     context.ReportDiagnostic(diagnostic);
                     continue;
@@ -143,7 +143,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
                     var diagnostic = Diagnostic.Create(
                         descriptor: NoMethodToGenerate,
                         location: attr.ExtensionMethodsLocation,
-                        messageArgs: attr.EnumType.Name
+                        messageArgs: attr.AttributeType.Name
                     );
                     context.ReportDiagnostic(diagnostic);
                     continue;
@@ -153,8 +153,8 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
                 {
                     var diagnostic = Diagnostic.Create(
                         descriptor: MultipleAttribute,
-                        location: attr.TypeLocation,
-                        messageArgs: attr.EnumType.Name
+                        location: attr.AttributeLocation,
+                        messageArgs: attr.AttributeType.Name
                     );
                     context.ReportDiagnostic(diagnostic);
                     continue;
@@ -175,52 +175,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         context.AddSource($"{typeSymbol.Name}SerializationExtensions.g.cs", builder.ToString());
     } // private static void Execute (SourceProductionContext, (GeneratorAttributeSyntaxContext Left, bool Right))
 
-    private static EnumSerializationInfo? GetEnumSerializationInfo(AttributeData attribute)
-    {
-        var args = attribute.ConstructorArguments;
-        if (args.Length == 0) return default;
-        if (args[0].Value is not INamedTypeSymbol enumType) return default;
-
-        var caseSensitive = true;
-        if (attribute.TryGetNamedArgumentValue("CaseSensitive", out bool cs))
-            caseSensitive = cs;
-
-        var methods = ExtensionMethods.All;
-        Location? methodLocation = null;
-        if (attribute.TryGetNamedArgumentEnumValue<ExtensionMethods>("Methods", out var m))
-        {
-            methods = m;
-            methodLocation = GetAttributeNamedArgumentSyntax(attribute, "Methods")?.GetLocation();
-        }
-
-        var location = GetAttributeArgumentSyntax(attribute, 0)?.GetLocation() ?? attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation();
-
-        return new(enumType, caseSensitive, methods, location, methodLocation);
-    } // private static EnumSerializationInfo? GetEnumSerializationInfo (AttributeData)
-
-    private static AttributeArgumentSyntax? GetAttributeArgumentSyntax(AttributeData attribute, int index)
-    {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax() is not AttributeSyntax attributeSyntax) return null;
-        if (attributeSyntax.ArgumentList is not AttributeArgumentListSyntax argumentList) return null;
-        if ((uint)index >= (uint)argumentList.Arguments.Count) return null;
-        return argumentList.Arguments[index];
-    } // private static AttributeArgumentSyntax? GetAttributeArgumentSyntax (AttributeData, int)
-
-    private static AttributeArgumentSyntax? GetAttributeNamedArgumentSyntax(AttributeData attribute, string name)
-    {
-        if (attribute.ApplicationSyntaxReference?.GetSyntax() is not AttributeSyntax attributeSyntax) return null;
-        if (attributeSyntax.ArgumentList is not AttributeArgumentListSyntax argumentList) return null;
-
-        foreach (var argument in argumentList.Arguments)
-        {
-            if (argument.NameEquals?.Name.Identifier.Text == name)
-                return argument;
-        }
-
-        return null;
-    } // private static AttributeArgumentSyntax? GetAttributeNamedArgumentSyntax (AttributeData, string)
-
-    private static void Generate(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<EnumSerializationInfo> targetTypes, GenerationMode mode)
+    private static void Generate(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<SerializeValueInfo> targetTypes, GenerationMode mode)
     {
         var usePooled = false;
 

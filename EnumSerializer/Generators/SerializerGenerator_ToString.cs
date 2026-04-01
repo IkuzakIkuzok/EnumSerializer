@@ -8,7 +8,7 @@ namespace EnumSerializer.Generators;
 
 internal sealed partial class SerializerGenerator
 {
-    private static void GenerateToString(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<EnumSerializationInfo> targetTypes, GenerationMode mode)
+    private static void GenerateToString(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<SerializeValueInfo> targetTypes, GenerationMode mode)
     {
         var enumName = enumType.FullyQualifiedName;
 
@@ -28,7 +28,7 @@ internal sealed partial class SerializerGenerator
         {
             if (!targetType.GenerateToString) continue;
 
-            var target = targetType.EnumType;
+            var target = targetType.AttributeType;
             var targetFullName = target.FullyQualifiedName;
             builder.AppendLine($$"""
             if (typeof(TAttr) == typeof({{targetFullName}}))
@@ -47,7 +47,7 @@ internal sealed partial class SerializerGenerator
         foreach (var target in targetTypes)
         {
             if (!target.GenerateToString) continue;
-            GenerateSpecialToString(builder, enumName, enumType, target.EnumType, canUsePatternMatching);
+            GenerateSpecialToString(builder, enumName, enumType, target.AttributeType, canUsePatternMatching);
         }
     } // private static void GenerateToString (StringBuilder, INamedTypeSymbol, IEnumerable<EnumSerializationInfo>, bool)
 

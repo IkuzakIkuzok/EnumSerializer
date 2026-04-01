@@ -8,7 +8,7 @@ namespace EnumSerializer.Generators;
 
 internal sealed partial class SerializerGenerator
 {
-    private static void GenerateTryParse(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<EnumSerializationInfo> targetTypes, GenerationMode mode, out bool usePooled)
+    private static void GenerateTryParse(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<SerializeValueInfo> targetTypes, GenerationMode mode, out bool usePooled)
     {
         usePooled = false;
         var canUseSpan = mode >= GenerationMode.OptimizedSpanWithIfElse;
@@ -33,7 +33,7 @@ internal sealed partial class SerializerGenerator
         {
             if (!targetType.GenerateTryParse) continue;
 
-            var target = targetType.EnumType;
+            var target = targetType.AttributeType;
             var targetFullName = target.FullyQualifiedName;
             builder.AppendLine($$"""
             if (typeof(TAttr) == typeof({{targetFullName}}))
@@ -62,12 +62,12 @@ internal sealed partial class SerializerGenerator
 
     #region extension method
 
-    private static void GenerateTryParseFromString(StringBuilder builder, string enumName, INamedTypeSymbol enumType, EnumSerializationInfo info, GenerationMode mode, out bool usePooled)
+    private static void GenerateTryParseFromString(StringBuilder builder, string enumName, INamedTypeSymbol enumType, SerializeValueInfo info, GenerationMode mode, out bool usePooled)
     {
         usePooled = false;
         var canUseSpan = mode >= GenerationMode.OptimizedSpanWithPatternMatching;
 
-        var target = info.EnumType;
+        var target = info.AttributeType;
         var targetFullName = target.FullyQualifiedName;
         var methodName = GetTryParseMethodName(target, enumType.Name);
 
@@ -310,7 +310,7 @@ internal sealed partial class SerializerGenerator
 
     #region static extension
 
-    private static void GenerateStaticExtension(StringBuilder builder, string enumName, INamedTypeSymbol enumType, IEnumerable<EnumSerializationInfo> targetTypes)
+    private static void GenerateStaticExtension(StringBuilder builder, string enumName, INamedTypeSymbol enumType, IEnumerable<SerializeValueInfo> targetTypes)
     {
         builder.AppendLine($$"""
 
@@ -333,7 +333,7 @@ internal sealed partial class SerializerGenerator
         {
             if (!targetType.GenerateTryParse) continue;
 
-            var target = targetType.EnumType;
+            var target = targetType.AttributeType;
             var methodName = GetStaticTryParseMethodName(target);
             builder.AppendLine($$"""
 
