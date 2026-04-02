@@ -125,14 +125,25 @@ partial class {{typeSymbol.Name}}
         if (!attr.TryGetNamedArgumentValue("TestName", out string? testName))
             testName = null;
 
-        if (string.IsNullOrWhiteSpace(testName))
-            testName = null; // To avoid creating method with whitespace names.
+        if (!IsValidMethodName(testName))
+            testName = null; // To avoid creating method with invalid name, we set it to null and use the field name instead.
 
         var location = field.Locations.FirstOrDefault();
         var filePath = location?.SourceTree?.FilePath ?? "";
 
         return new(field.Name, field.IsStatic, testName, filePath);
     } // private static FieldInfo? ToFieldInfo (IFieldSymbol)
+
+    private static bool IsValidMethodName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return false;
+        if (!SyntaxFacts.IsValidIdentifier(name)) return false;
+
+        if (SyntaxFacts.IsReservedKeyword(SyntaxFacts.GetKeywordKind(name))) return false;
+        if (SyntaxFacts.IsContextualKeyword(SyntaxFacts.GetContextualKeywordKind(name))) return false;
+
+        return true;
+    } // private static bool IsValidMethodName (string?)
 
     // lang=C#
     private const string HelperSource = """
