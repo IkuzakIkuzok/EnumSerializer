@@ -7,6 +7,7 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="EnumSerializer.Benchmarks/EnumSerializer.Benchmarks.csproj" Id="df9ce658-790a-4850-ad34-53fff4fcfafe" />
+  <Project Path="EnumSerializer.SourceGeneratorUtils/EnumSerializer.SourceGeneratorUtils.csproj" Id="c4c9aca5-ae58-4acd-9e06-9fbc0322b900" />
   <Project Path="EnumSerializer.Test/EnumSerializer.Test.csproj" Id="bf399431-2ae9-45a3-9cb0-1e0cd240de2f" />
   <Project Path="EnumSerializer/EnumSerializer.csproj" />
 </Solution>
