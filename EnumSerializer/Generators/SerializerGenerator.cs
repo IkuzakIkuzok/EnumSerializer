@@ -96,7 +96,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
 
             if (!attrs.Any()) return;
 
-            var targets = GetTargetAttributes(attrs, context, out var extensionClassName);
+            var targets = SanitizeInvalidAttributes(attrs, context, out var extensionClassName);
 
             if (!targets.Any()) return;
 
@@ -112,7 +112,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         context.AddSource($"{typeSymbol.Name}SerializationExtensions.g.cs", builder.ToString());
     } // private static void Execute (SourceProductionContext, (GeneratorAttributeSyntaxContext Left, bool Right))
 
-    private static HashSet<SerializeValueInfo> GetTargetAttributes(IEnumerable<SerializeValueInfo> allAttributes, SourceProductionContext context, out string? extensionClassName)
+    private static HashSet<SerializeValueInfo> SanitizeInvalidAttributes(IEnumerable<SerializeValueInfo> allAttributes, SourceProductionContext context, out string? extensionClassName)
     {
         extensionClassName = null;
         var targets = new HashSet<SerializeValueInfo>(SerializeValueInfo.EqualityComparer.Default);
@@ -158,7 +158,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         }
 
         return targets;
-    } // private static HashSet<SerializeValueInfo> GetTargetAttributes (IEnumerable<SerializeValueInfo>, SourceProductionContext, out string?)
+    } // private static HashSet<SerializeValueInfo> SanitizeInvalidAttributes (IEnumerable<SerializeValueInfo>, SourceProductionContext, out string?)
 
     private static void Generate(StringBuilder builder, INamedTypeSymbol enumType, string className, IEnumerable<SerializeValueInfo> targetTypes, GenerationMode mode)
     {
