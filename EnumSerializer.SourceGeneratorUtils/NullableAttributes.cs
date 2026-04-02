@@ -3,6 +3,7 @@
 
 namespace EnumSerializer.SourceGeneratorUtils;
 
+[Generator(LanguageNames.CSharp)]
 internal sealed class NullableAttributes : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
