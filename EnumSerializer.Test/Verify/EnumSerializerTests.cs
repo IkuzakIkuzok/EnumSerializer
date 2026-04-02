@@ -3,290 +3,191 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Runtime.CompilerServices;
 
 namespace EnumSerializer.Test.Verify;
 
-public sealed class EnumSerializerTests
+[VerifyTest(LanguageVersion.CSharp6, LanguageVersion.CSharp9, LanguageVersion.CSharp12, LanguageVersion.CSharp14)]
+public sealed partial class EnumSerializerTests
 {
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task SimpleSwitch(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
+    // lang=C#
+    [TestSource]
+    private static readonly string simpleSwitch = """
+        using EnumSerializer;
 
-            namespace Test;
+        namespace Test;
 
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("val1")]
-                Value1,
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1,
 
-                [DefaultSerializeValueAttribute("val2")]
-                Value2,
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
 
-                [DefaultSerializeValueAttribute("val3")]
-                Value3
-            }
-            """;
+            [DefaultSerializeValueAttribute("val3")]
+            Value3
+        }
+        """;
 
-        return RunTest(source, languageVersion);
-    } // internal Task SimpleSwitch (LanguageVersion)
+    // lang=C#
+    [TestSource]
+    private static readonly string ignoreCase = """
+        using EnumSerializer;
+        
+        namespace Test;
+        
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute), CaseSensitive = false)]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1,
+        
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
+        
+            [DefaultSerializeValueAttribute("val3")]
+            Value3
+        }
+        """;
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task IgnoreCase(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
+    // lang=C#
+    [TestSource]
+    private static readonly string differentLength = """
+        using EnumSerializer;
 
-            namespace Test;
+        namespace Test;
 
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute), CaseSensitive = false)]
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("val1")]
-                Value1,
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("v1")]
+            Value1,
 
-                [DefaultSerializeValueAttribute("val2")]
-                Value2,
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
 
-                [DefaultSerializeValueAttribute("val3")]
-                Value3
-            }
-            """;
+            [DefaultSerializeValueAttribute("value3")]
+            Value3
+        }
+        """;
 
-        return RunTest(source, languageVersion);
-    } // internal Task IgnoreCase (LanguageVersion)
+    // lang=C#
+    [TestSource]
+    private static readonly string emptyEnum = """
+        using EnumSerializer;
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task DifferentLength(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
+        namespace Test;
 
-            namespace Test;
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
+        internal enum MyEnum
+        {
+        }
+        """;
 
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("v1")]
-                Value1,
+    // lang=C#
+    [TestSource]
+    private static readonly string singleValueEnum = """
+        using EnumSerializer;
 
-                [DefaultSerializeValueAttribute("val2")]
-                Value2,
+        namespace Test;
 
-                [DefaultSerializeValueAttribute("value3")]
-                Value3
-            }
-            """;
-        return RunTest(source, languageVersion);
-    } // internal Task DifferentLength (LanguageVersion)
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1
+        }
+        """;
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task EmptyEnum(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
+    // lang=C#
+    [TestSource]
+    private static readonly string toStringOnly = """
+        using EnumSerializer;
 
-            namespace Test;
+        namespace Test;
 
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
-            internal enum MyEnum
-            {
-            }
-            """;
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute), Methods = ExtensionMethods.ToString)]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1,
 
-        return RunTest(source, languageVersion);
-    } // internal Task EmptyEnum (LanguageVersion)
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task SingleValueEnum(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
+            [DefaultSerializeValueAttribute("val3")]
+            Value3
+        }
+        """;
 
-            namespace Test;
+    // lang=C#
+    [TestSource]
+    private static readonly string tryParseOnly = """
+        using EnumSerializer;
 
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("val1")]
-                Value1
-            }
-            """;
-        return RunTest(source, languageVersion);
-    } // internal Task SingleValueEnum (LanguageVersion)
+        namespace Test;
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task ToStringOnly(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute), Methods = ExtensionMethods.TryParse)]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1,
 
-            namespace Test;
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
 
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute), Methods = ExtensionMethods.ToString)]
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("val1")]
-                Value1,
+            [DefaultSerializeValueAttribute("val3")]
+            Value3
+        }
+        """;
 
-                [DefaultSerializeValueAttribute("val2")]
-                Value2,
+    // lang=C#
+    [TestSource]
+    private static readonly string ignoreCaseLong = """
+        using EnumSerializer;
 
-                [DefaultSerializeValueAttribute("val3")]
-                Value3
-            }
-            """;
+        namespace Test;
 
-        return RunTest(source, languageVersion);
-    } // internal Task ToStringOnly (LanguageVersion)
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute), CaseSensitive = false)]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("Short literal")]
+            Short,
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task TryParseOnly(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
+            // 774 characters
+            [DefaultSerializeValueAttribute("An exceptionally elongated string literal meticulously constructed for the explicit purpose of rigorously evaluating the boundary conditions and threshold capacities of high-performance zero-allocation serialization algorithms relying heavily on raw memory manipulation techniques such as ref byte references and span slicing within custom-built Source Generator outputs, specifically intended to trigger dynamic buffer reallocation pathways, aggressively expose potential stack overflow vulnerabilities, and thoroughly validate the robust handling of continuous contiguous memory blocks significantly exceeding the standard two-hundred-and-fifty-six-byte stack-allocated threshold limit without compromising execution speed or introducing hidden garbage collection overhead")]
+            VeryLong,
+        }
+        """;
 
-            namespace Test;
+    // lang=C#
+    [TestSource]
+    private static readonly string invalidArguments = """
+        using EnumSerializer;
 
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute), Methods = ExtensionMethods.TryParse)]
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("val1")]
-                Value1,
+        namespace Test;
 
-                [DefaultSerializeValueAttribute("val2")]
-                Value2,
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
+        [EnumSerializable(typeof(string))] // Invalid attribute type
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1,
 
-                [DefaultSerializeValueAttribute("val3")]
-                Value3
-            }
-            """;
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
 
-        return RunTest(source, languageVersion);
-    } // internal Task TryParseOnly (LanguageVersion)
-
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task IgnoreCaseLong(LanguageVersion languageVersion)
-    {
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
-
-            namespace Test;
-
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute), CaseSensitive = false)]
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("Short literal")]
-                Short,
-
-                // 774 characters
-                [DefaultSerializeValueAttribute("An exceptionally elongated string literal meticulously constructed for the explicit purpose of rigorously evaluating the boundary conditions and threshold capacities of high-performance zero-allocation serialization algorithms relying heavily on raw memory manipulation techniques such as ref byte references and span slicing within custom-built Source Generator outputs, specifically intended to trigger dynamic buffer reallocation pathways, aggressively expose potential stack overflow vulnerabilities, and thoroughly validate the robust handling of continuous contiguous memory blocks significantly exceeding the standard two-hundred-and-fifty-six-byte stack-allocated threshold limit without compromising execution speed or introducing hidden garbage collection overhead")]
-                VeryLong,
-            }
-            """;
-
-        return RunTest(source, languageVersion);
-    } // internal Task LongLiterals (LanguageVersion)
-
-    [Theory]
-    [InlineData(LanguageVersion.CSharp6)]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.CSharp12)]
-    [InlineData(LanguageVersion.CSharp14)]
-    internal Task InvalidArguments(LanguageVersion languageVersion)
-    {
-        /*
-         * Invarid arguments should be ignored and other valid attributes should work as expected. 
-         * In this case, the second EnumSerializable attribute has an invalid type argument (string), 
-         * but the first one is valid, so the generator should generate code based on the first attribute 
-         * and ignore the second one.
-         */
-
-        // lang=C#
-        const string source = """
-            using EnumSerializer;
-
-            namespace Test;
-
-            [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
-            [EnumSerializable(typeof(string))] // Invalid attribute type
-            internal enum MyEnum
-            {
-                [DefaultSerializeValueAttribute("val1")]
-                Value1,
-
-                [DefaultSerializeValueAttribute("val2")]
-                Value2,
-
-                [DefaultSerializeValueAttribute("val3")]
-                Value3
-            }
-            """;
-
-        return RunTest(source, languageVersion);
-    } // internal Task InvalidArguments (LanguageVersion)
-
-    private static Task RunTest(string source, LanguageVersion languageVersion, [CallerMemberName] string testName = "")
-    {
-        var driver = GeneratorTestHelper.GetDriver(source, languageVersion);
-        var results = driver.GetRunResult();
-        var targetSource =
-            results.Results.SelectMany(r => r.GeneratedSources)
-                           .Single(s => !IgnoreRule(s))
-                           .SourceText.ToString();
-        return Verifier.Verify(target: targetSource, extension: "cs")
-                       .UseDirectory($"Snapshots/{testName}")
-                       .UseFileName(languageVersion.ToString());
-    } // private static Task RunTest (string, LanguageVersion, [string])
+            [DefaultSerializeValueAttribute("val3")]
+            Value3
+        }
+        """;
 
     private static readonly string[] _ignoreFiles = [
         "ExtensionMethods.g.cs"
     ];
 
-    private static bool IgnoreRule(GeneratedSourceResult result)
+    private static partial bool IgnoreRule(GeneratedSourceResult result)
     {
         if (result.HintName.EndsWith("Attribute.g.cs", StringComparison.OrdinalIgnoreCase)) return true;
         if (_ignoreFiles.Contains(result.HintName)) return true;

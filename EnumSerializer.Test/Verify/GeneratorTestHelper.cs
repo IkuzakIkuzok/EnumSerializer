@@ -9,12 +9,6 @@ namespace EnumSerializer.Test.Verify;
 
 internal static class GeneratorTestHelper
 {
-    [ModuleInitializer]
-    internal static void Init()
-    {
-        VerifySourceGenerators.Initialize();
-    } // internal static void Init ()
-
     [UnsafeAccessor(UnsafeAccessorKind.Constructor)]
     [return: UnsafeAccessorType("EnumSerializer.Generators.SerializerGenerator, EnumSerializer")]
     private static extern object CreateSerializerGeneratorImpl();

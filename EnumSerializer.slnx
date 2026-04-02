@@ -9,5 +9,6 @@
   <Project Path="EnumSerializer.Benchmarks/EnumSerializer.Benchmarks.csproj" Id="df9ce658-790a-4850-ad34-53fff4fcfafe" />
   <Project Path="EnumSerializer.SourceGeneratorUtils/EnumSerializer.SourceGeneratorUtils.csproj" Id="c4c9aca5-ae58-4acd-9e06-9fbc0322b900" />
   <Project Path="EnumSerializer.Test/EnumSerializer.Test.csproj" Id="bf399431-2ae9-45a3-9cb0-1e0cd240de2f" />
+  <Project Path="EnumSerializer.TestGenerator/EnumSerializer.TestGenerator.csproj" Id="a91ed287-1e5f-4bd2-9c2a-1c55df8d86bc" />
   <Project Path="EnumSerializer/EnumSerializer.csproj" />
 </Solution>

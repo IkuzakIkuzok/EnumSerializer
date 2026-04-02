@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -27,6 +28,9 @@
   <ItemGroup>
     <ProjectReference Include="..\EnumSerializer\EnumSerializer.csproj" />
     <ProjectReference Include="..\EnumSerializer\EnumSerializer.csproj"
+                    OutputItemType="Analyzer"
+                    ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\EnumSerializer.TestGenerator\EnumSerializer.TestGenerator.csproj"
                     OutputItemType="Analyzer"
                     ReferenceOutputAssembly="false" />
   </ItemGroup>
