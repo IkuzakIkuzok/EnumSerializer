@@ -48,6 +48,15 @@ namespace EnumSerializer
         public bool CaseSensitive { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets the name of the extension class to be generated for enum serialization.
+        /// </summary>
+        /// <remarks>
+        /// If <see langword="null"/>, the extension class will be generated with the default name with suffix to avoid name conflicts.
+        /// If specified, the extension class will be generated with the specified name without any modification and the generator will not check for name conflicts.
+        /// </remarks>
+        public string? ExtensionClassName { get; set; } = null;
+
+        /// <summary>
         /// Gets or sets the extension methods to be generated for enum serialization.
         /// </summary>
         public global::EnumSerializer.ExtensionMethods Methods { get; set; } = global::EnumSerializer.ExtensionMethods.All;

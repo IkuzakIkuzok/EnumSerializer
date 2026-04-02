@@ -183,6 +183,62 @@ public sealed partial class EnumSerializerTests
         }
         """;
 
+    // lang=C#
+    [TestSource]
+    private readonly string nameCollision = """
+        using EnumSerializer;
+        
+        namespace Test;
+        
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute))]
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1,
+        
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
+        
+            [DefaultSerializeValueAttribute("val3")]
+            Value3
+        }
+
+        // Following classes intentionally collide with the generated class name "MyEnumSerializationExtensions"
+        // to test the generator's ability to resolve name conflicts by generating unique class names.
+        internal class MyEnumSerializationExtensions {}
+        internal class MyEnumSerializationExtensions_1 {}
+        """;
+
+    // lang=C#
+    [TestSource]
+    private static readonly string specifiedClassName = """
+        using EnumSerializer;
+
+        namespace Test;
+
+        [EnumSerializable(typeof(DefaultSerializeValueAttribute), ExtensionClassName = "CustomClassName")]
+        [EnumSerializable(typeof(CustomSerializeValueAttribute), ExtensionClassName = "DifferentCustomClassName")] // This ExtensionClassName is ignored because it's only applicable to the first EnumSerializableAttribute.
+        internal enum MyEnum
+        {
+            [DefaultSerializeValueAttribute("val1")]
+            Value1,
+        
+            [DefaultSerializeValueAttribute("val2")]
+            Value2,
+        
+            [DefaultSerializeValueAttribute("val3")]
+            Value3
+        }
+
+        internal class CustomSerializeValueAttribute : SerializeValueAttribute
+        {
+            internal CustomSerializeValueAttribute(string value) : base(value) { }
+        }
+
+        // The user-specified class name is always used without modification and the generator does not check for name conflicts.
+        internal class CustomClassName {}
+        """;
+
     private static readonly string[] _ignoreFiles = [
         "ExtensionMethods.g.cs"
     ];

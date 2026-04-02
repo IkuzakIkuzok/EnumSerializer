@@ -8,15 +8,17 @@ namespace EnumSerializer.Generators;
 
 internal sealed class SerializeValueInfo
 {
-    internal INamedTypeSymbol AttributeType { get; }
+    required internal INamedTypeSymbol AttributeType { get; init; }
 
-    internal bool CaseSensitive { get; }
+    required internal bool CaseSensitive { get; init; }
 
-    internal ExtensionMethods ExtensionMethods { get; }
+    required internal string? ExtensionClassName { get; init; }
 
-    internal bool GenerateToString { get; }
+    required internal ExtensionMethods ExtensionMethods { get; init; }
 
-    internal bool GenerateTryParse { get; }
+    required internal bool GenerateToString { get; init; }
+
+    required internal bool GenerateTryParse { get; init; }
 
     /// <summary>
     /// Gets the location of the whole attribute application.
@@ -25,7 +27,7 @@ internal sealed class SerializeValueInfo
     /// For <c>[EnumSerializable(typeof(DefaultSerializeValueAttribute))]</c>,
     /// this property locates <c>EnumSerializable(typeof(DefaultSerializeValueAttribute))</c>.
     /// </remarks>
-    internal Location? Location { get; }
+    required internal Location? Location { get; init; }
 
     /// <summary>
     /// Gets the location of the attribute specifed as the argument of <c>EnumSerializableAttribute</c>.
@@ -34,21 +36,13 @@ internal sealed class SerializeValueInfo
     /// For <c>[EnumSerializable(typeof(DefaultSerializeValueAttribute))]</c>,
     /// this property locates <c>typeof(DefaultSerializeValueAttribute)</c>.
     /// </remarks>
-    internal Location? AttributeLocation { get; }
+    required internal Location? AttributeLocation { get; init; }
 
-    internal Location? ExtensionMethodsLocation { get; }
+    required internal Location? ClassNameLocation { get; init; }
 
-    private SerializeValueInfo(INamedTypeSymbol enumType, bool caseSensitive, ExtensionMethods methods, Location? location, Location? attrLocation, Location? extensionMethodsLocation)
-    {
-        this.AttributeType = enumType;
-        this.ExtensionMethods = methods;
-        this.CaseSensitive = caseSensitive;
-        this.GenerateToString = methods.HasFlag(ExtensionMethods.ToString);
-        this.GenerateTryParse = methods.HasFlag(ExtensionMethods.TryParse);
-        this.Location = location;
-        this.AttributeLocation = attrLocation;
-        this.ExtensionMethodsLocation = extensionMethodsLocation;
-    } // ctor (INamedTypeSymbol, bool, ExtensionMethods, Location?, Location?)
+    required internal Location? ExtensionMethodsLocation { get; init; }
+
+    private SerializeValueInfo() { }
 
     internal static SerializeValueInfo? Create(AttributeData attribute)
     {
@@ -70,11 +64,30 @@ internal sealed class SerializeValueInfo
             methodLocation = argSyntaxList?["Methods"]?.GetLocation();
         }
 
+        Location? classNameLocation = null;
+        if (attribute.TryGetNamedArgumentValue("ExtensionClassName", out string? className))
+            classNameLocation = argSyntaxList?["ExtensionClassName"]?.GetLocation();
+        else
+            className = null;
+
+
         var location = attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation();
         var attrLocation = argSyntaxList?[0]?.GetLocation();
 
-        return new(enumType, caseSensitive, methods, location, attrLocation, methodLocation);
-    } // internal static SerializeValueInfo? Create (AttributeData)
+        return new()
+        {
+            AttributeType = enumType,
+            CaseSensitive = caseSensitive,
+            ExtensionClassName = className,
+            ExtensionMethods = methods,
+            GenerateToString = methods.HasFlag(ExtensionMethods.ToString),
+            GenerateTryParse = methods.HasFlag(ExtensionMethods.TryParse),
+            Location = location,
+            AttributeLocation = attrLocation,
+            ClassNameLocation = classNameLocation,
+            ExtensionMethodsLocation = methodLocation
+        };
+    } // internal static SerializeValueInfo? Create (AttributeData, Compilation)
 
     internal sealed class EqualityComparer : IEqualityComparer<SerializeValueInfo>
     {

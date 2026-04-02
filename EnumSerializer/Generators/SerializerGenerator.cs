@@ -12,7 +12,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
 {
     private const int MaxStackAllocLength = 256;
 
-    private const string AttributeFullName = $"{AttributesGenerator.Namespace}.{AttributesGenerator.EnumSerializableName}";
+    internal const string AttributeFullName = $"{AttributesGenerator.Namespace}.{AttributesGenerator.EnumSerializableName}";
 
     private static readonly DiagnosticDescriptor InvalidAttributeInheritance = new(
         id: "ES0001",
@@ -41,6 +41,15 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         isEnabledByDefault : true
     );
 
+    private static readonly DiagnosticDescriptor ExtensionClassNameConflict = new(
+        id: "ES1003",
+        title: "Extension class name conflict",
+        messageFormat: "Multiple extension class names are specified. '{0}' will be ignored.",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault : true
+    );
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var canUseSpanProvider = context.CompilationProvider.Select(CheckFeaturesAvailability);
@@ -48,7 +57,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         var sources = context.SyntaxProvider.ForAttributeWithMetadataName(
             AttributeFullName,
             static (node, token) => node is EnumDeclarationSyntax,
-            static (context, token) => context
+            static (context, token) => EnumInfo.Create(context)
         );
 
         var combined = sources.Combine(canUseSpanProvider);
@@ -96,12 +105,12 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         return GenerationMode.OptimizedSpanWithIfElse;
     } // private static bool CheckFeaturesAvailability (Compilation, CancellationToken)
 
-    private static void Execute(SourceProductionContext context, (GeneratorAttributeSyntaxContext Left, GenerationMode Right) provider)
+    private static void Execute(SourceProductionContext context, (EnumInfo Left, GenerationMode Right) provider)
     {
-        var type = provider.Left;
+        var enumInfo = provider.Left;
         var generationMode = provider.Right;
 
-        var typeSymbol = (INamedTypeSymbol)type.TargetSymbol;
+        var typeSymbol = enumInfo.EnumType;
 
         var builder = new StringBuilder();
         builder.AppendLine("""
@@ -117,14 +126,12 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
 
         try
         {
-            var attrs =
-                type.Attributes.Where(a => a.AttributeClass?.FullName == AttributeFullName)
-                               .Select(SerializeValueInfo.Create)
-                               .OfType<SerializeValueInfo>();
+            var attrs = enumInfo.SerializeValues;
 
             if (!attrs.Any()) return;
 
             var targets = new HashSet<SerializeValueInfo>(SerializeValueInfo.EqualityComparer.Default);
+            string? extensionClassName = null;
             foreach (var attr in attrs)
             {
                 if (!attr.AttributeType.InheritsFrom("global::EnumSerializer.SerializeValueAttribute"))
@@ -160,12 +167,32 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
                     continue;
                 }
 
+                if (attr.ExtensionClassName is { } className)
+                {
+                    if (extensionClassName is null)
+                    {
+                        extensionClassName = className;
+                    }
+                    else if (extensionClassName != className)
+                    {
+                        var diagnostic = Diagnostic.Create(
+                            descriptor: ExtensionClassNameConflict,
+                            location: attr.ClassNameLocation,
+                            messageArgs: className
+                        );
+                        context.ReportDiagnostic(diagnostic);
+                    }
+                    // If the multiple attributes specify the same class name, it is not a conflict and can be accepted (no warning is issued).
+                }
+
                 targets.Add(attr);
             }
 
             if (!targets.Any()) return;
 
-            Generate(builder, typeSymbol, targets, generationMode);
+            extensionClassName ??= enumInfo.ExtensionClassName;
+
+            Generate(builder, typeSymbol, extensionClassName, targets, generationMode);
         }
         catch
         {
@@ -175,14 +202,13 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
         context.AddSource($"{typeSymbol.Name}SerializationExtensions.g.cs", builder.ToString());
     } // private static void Execute (SourceProductionContext, (GeneratorAttributeSyntaxContext Left, bool Right))
 
-    private static void Generate(StringBuilder builder, INamedTypeSymbol enumType, IEnumerable<SerializeValueInfo> targetTypes, GenerationMode mode)
+    private static void Generate(StringBuilder builder, INamedTypeSymbol enumType, string className, IEnumerable<SerializeValueInfo> targetTypes, GenerationMode mode)
     {
         var usePooled = false;
 
         if (targetTypes.All(t => t.ExtensionMethods == ExtensionMethods.None))
             return;
 
-        var enumShortName = enumType.Name;
         var enumName = enumType.FullyQualifiedName;
 
         var ns = enumType.ContainingNamespace.ToDisplayString();
@@ -194,7 +220,7 @@ namespace {{ns}}
     /// <summary>
     /// Provides extension methods for serialization of the <see cref="{{enumName}}"/> enum.
     /// </summary>
-    internal static class {{enumShortName}}SerializationExtensions
+    internal static class {{className}}
     {
 """);
 
