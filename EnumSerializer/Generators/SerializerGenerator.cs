@@ -14,41 +14,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
 
     internal const string AttributeFullName = $"{AttributesGenerator.Namespace}.{AttributesGenerator.EnumSerializableName}";
 
-    private static readonly DiagnosticDescriptor InvalidAttributeInheritance = new(
-        id: "ES0001",
-        title: "Invalid parameter inheritance",
-        messageFormat: "Type '{0}' does not inherit from 'EnumSerializer.SerializeValueAttribute'",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true
-    );
-
-    private static readonly DiagnosticDescriptor NoMethodToGenerate = new(
-        id: "ES1001",
-        title: "No methods to generate",
-        messageFormat: "'ExtensionMethods.None' is specified for '{0}'. No extension methods will be generated.",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true
-    );
-
-    private static readonly DiagnosticDescriptor MultipleAttribute = new(
-        id: "ES1002",
-        title: "Duplicate attribute",
-        messageFormat: "Multiple '{0}' attributes are applied. This will be ignored.",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault : true
-    );
-
-    private static readonly DiagnosticDescriptor ExtensionClassNameConflict = new(
-        id: "ES1003",
-        title: "Extension class name conflict",
-        messageFormat: "Multiple extension class names are specified. '{0}' will be ignored.",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault : true
-    );
+    
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -136,33 +102,21 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
             {
                 if (!attr.AttributeType.InheritsFrom("global::EnumSerializer.SerializeValueAttribute"))
                 {
-                    var diagnostic = Diagnostic.Create(
-                        descriptor: InvalidAttributeInheritance,
-                        location: attr.AttributeLocation,
-                        messageArgs: attr.AttributeType.Name
-                    );
+                    var diagnostic = DiagnosticDescriptors.InvalidAttributeInheritance(attr.AttributeType.Name, attr.AttributeLocation);
                     context.ReportDiagnostic(diagnostic);
                     continue;
                 }
 
                 if (attr.ExtensionMethods == ExtensionMethods.None)
                 {
-                    var diagnostic = Diagnostic.Create(
-                        descriptor: NoMethodToGenerate,
-                        location: attr.ExtensionMethodsLocation,
-                        messageArgs: attr.AttributeType.Name
-                    );
+                    var diagnostic = DiagnosticDescriptors.NoMethodToGenerate(attr.AttributeType.Name, attr.ExtensionMethodsLocation);
                     context.ReportDiagnostic(diagnostic);
                     continue;
                 }
 
                 if (targets.Contains(attr))
                 {
-                    var diagnostic = Diagnostic.Create(
-                        descriptor: MultipleAttribute,
-                        location: attr.AttributeLocation,
-                        messageArgs: attr.AttributeType.Name
-                    );
+                    var diagnostic = DiagnosticDescriptors.MultipleAttribute(attr.AttributeType.Name, attr.AttributeLocation);
                     context.ReportDiagnostic(diagnostic);
                     continue;
                 }
@@ -175,11 +129,7 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
                     }
                     else if (extensionClassName != className)
                     {
-                        var diagnostic = Diagnostic.Create(
-                            descriptor: ExtensionClassNameConflict,
-                            location: attr.ClassNameLocation,
-                            messageArgs: className
-                        );
+                        var diagnostic = DiagnosticDescriptors.ExtensionClassNameConflict(className, attr.ClassNameLocation);
                         context.ReportDiagnostic(diagnostic);
                     }
                     // If the multiple attributes specify the same class name, it is not a conflict and can be accepted (no warning is issued).
