@@ -1,7 +1,6 @@
-﻿
-// (c) 2026 Kazuki Kohzuki
+﻿// (c) 2026 Kazuki Kohzuki
 
-namespace EnumSerializer.TestGenerator.Verify;
+namespace EnumSerializer.TestGenerator;
 
 internal record TestCaseInfo(string SourceName, bool SourceIsStatic, string? TestName, string FilePath)
 {
