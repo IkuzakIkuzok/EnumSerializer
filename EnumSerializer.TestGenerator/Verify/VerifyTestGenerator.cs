@@ -156,20 +156,12 @@ file static class VerifyTestHelper
         global::VerifyTests.VerifySourceGenerators.Initialize();
     } // internal static void Init ()
 
-    [global::System.Runtime.CompilerServices.UnsafeAccessor(global::System.Runtime.CompilerServices.UnsafeAccessorKind.Constructor)]
-    [return: global::System.Runtime.CompilerServices.UnsafeAccessorType("EnumSerializer.Generators.SerializerGenerator, EnumSerializer")]
-    private static extern object CreateSerializerGenerator();
-
-    [global::System.Runtime.CompilerServices.UnsafeAccessor(global::System.Runtime.CompilerServices.UnsafeAccessorKind.Constructor)]
-    [return: global::System.Runtime.CompilerServices.UnsafeAccessorType("EnumSerializer.Generators.AttributesGenerator, EnumSerializer")]
-    private static extern object CreateAttributesGenerator();
-
     private static global::Microsoft.CodeAnalysis.GeneratorDriver GetDriver(string source, global::Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion)
     {
         var options = new global::Microsoft.CodeAnalysis.CSharp.CSharpParseOptions(languageVersion);
 
-        var serializerGenerator = (global::Microsoft.CodeAnalysis.IIncrementalGenerator)CreateSerializerGenerator();
-        var attributesGenerator = (global::Microsoft.CodeAnalysis.IIncrementalGenerator)CreateAttributesGenerator();
+        var serializerGenerator = new global::EnumSerializer.Generators.SerializerGenerator();
+        var attributesGenerator = new global::EnumSerializer.Generators.AttributesGenerator();
 
         var syntaxTree = global::Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(source, options, cancellationToken: TestContext.Current.CancellationToken);
         var compilation = global::Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
@@ -179,7 +171,7 @@ file static class VerifyTestHelper
         )
             .AddReferences(
                 global::Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                global::Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(serializerGenerator.GetType().Assembly.Location)
+                global::Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(global::EnumSerializer.Generators.SerializerGenerator).Assembly.Location)
             );
 
         return global::Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.Create(attributesGenerator, serializerGenerator)
