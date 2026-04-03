@@ -7,6 +7,7 @@ namespace EnumSerializer
     /// Specifies the extension methods to be generated for enum serialization.
     /// </summary>
     [global::System.Flags]
+    [global::Microsoft.CodeAnalysis.Embedded]
     internal enum ExtensionMethods
     {
         /// <summary>

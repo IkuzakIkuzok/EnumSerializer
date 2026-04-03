@@ -23,6 +23,7 @@ internal sealed class AttributesGenerator : IIncrementalGenerator
 
         context.RegisterPostInitializationOutput(context =>
         {
+            context.AddEmbeddedAttributeDefinition();
             context.AddSource("EnumSerializableAttribute.g.cs", EnumSerializableSource);
             context.AddSource("ExtensionMethods.g.cs", extensionMethodsSource);
             context.AddSource("SerializeValueAttribute.g.cs", SerializeValueSource);
