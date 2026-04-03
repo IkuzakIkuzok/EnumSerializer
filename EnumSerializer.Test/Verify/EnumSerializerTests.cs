@@ -240,7 +240,8 @@ public sealed partial class EnumSerializerTests
         """;
 
     private static readonly string[] _ignoreFiles = [
-        "ExtensionMethods.g.cs"
+        "ExtensionMethods.g.cs",
+        "Microsoft.CodeAnalysis.EmbeddedAttribute.cs",
     ];
 
     private static partial bool IgnoreRule(GeneratedSourceResult result)
