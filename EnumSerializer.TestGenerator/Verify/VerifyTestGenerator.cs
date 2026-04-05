@@ -10,7 +10,6 @@ namespace EnumSerializer.TestGenerator.Verify;
 internal sealed class VerifyTestGenerator : IIncrementalGenerator
 {
     private const string RootAttributeFullName = $"{TypesGenerator.Namespace}.{TypesGenerator.VerifyTestAttribute}";
-    private const string TestSourceAttributeFullName = $"{TypesGenerator.Namespace}.{TypesGenerator.TestSourceAttribute}";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -39,7 +38,7 @@ internal sealed class VerifyTestGenerator : IIncrementalGenerator
         var fields = 
             typeSymbol.GetMembers()
                       .OfType<IFieldSymbol>()
-                      .Select(ToFieldInfo)
+                      .Select(TestCaseInfo.FromFieldSymbol)
                       .OfType<TestCaseInfo>()
                       .ToArray();
         if (fields.Length == 0) return;
@@ -114,36 +113,6 @@ partial class {{typeSymbol.Name}}
             yield return (LanguageVersion)versionValue;
         }
     } // private static IEnumerable<LanguageVersion> GetLanguageVersions (ImmutableArray<TypedConstant>)
-
-    private static TestCaseInfo? ToFieldInfo(IFieldSymbol field)
-    {
-        if (field.Type.SpecialType != SpecialType.System_String) return null;
-
-        var attr = field.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.FullName == TestSourceAttributeFullName);
-        if (attr is null) return null;
-
-        if (!attr.TryGetNamedArgumentValue("TestName", out string? testName))
-            testName = null;
-
-        if (!IsValidMethodName(testName))
-            testName = null; // To avoid creating method with invalid name, we set it to null and use the field name instead.
-
-        var location = field.Locations.FirstOrDefault();
-        var filePath = location?.SourceTree?.FilePath ?? "";
-
-        return new(field.Name, field.IsStatic, testName, filePath);
-    } // private static FieldInfo? ToFieldInfo (IFieldSymbol)
-
-    private static bool IsValidMethodName(string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name)) return false;
-        if (!SyntaxFacts.IsValidIdentifier(name)) return false;
-
-        if (SyntaxFacts.IsReservedKeyword(SyntaxFacts.GetKeywordKind(name))) return false;
-        if (SyntaxFacts.IsContextualKeyword(SyntaxFacts.GetContextualKeywordKind(name))) return false;
-
-        return true;
-    } // private static bool IsValidMethodName (string?)
 
     // lang=C#
     private const string HelperSource = """
