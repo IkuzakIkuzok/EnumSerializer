@@ -32,7 +32,7 @@ internal sealed class DiagnosticTestGenerator : IIncrementalGenerator
             typeSymbol.GetMembers()
                       .OfType<IFieldSymbol>()
                       .Select(TestCaseInfo.FromFieldSymbol)
-                      .OfType<TestCaseInfo>()
+                      .NotNull()
                       .ToArray();
         if (fields.Length == 0) return;
 
