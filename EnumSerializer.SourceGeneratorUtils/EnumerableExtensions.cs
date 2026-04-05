@@ -24,6 +24,22 @@ internal static class EnumerableExtensions
     extension<T> (global::System.Collections.Generic.IEnumerable<T?> source) where T : notnull
     {
         /// <summary>
+        /// Projects each element of a sequence into a new form and filters out null results.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the value returned by selector.</typeparam>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <returns>A sequence of non-null values returned by selector.</returns>
+        internal global::System.Collections.Generic.IEnumerable<TResult> SelectNotNull<TResult>(global::System.Func<T, TResult?> selector)
+        {
+            foreach (var item in source)
+            {
+                if (item is null) continue;
+                if (selector(item) is { } result)
+                    yield return result;
+            }
+        }
+
+        /// <summary>
         /// Filters out null values from the source sequence.
         /// </summary>
         /// <returns>A sequence of non-null values from the source.</returns>
