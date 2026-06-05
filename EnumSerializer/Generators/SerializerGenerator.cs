@@ -14,8 +14,6 @@ internal sealed partial class SerializerGenerator : IIncrementalGenerator
 
     internal const string AttributeFullName = $"{AttributesGenerator.Namespace}.{AttributesGenerator.EnumSerializableName}";
 
-    
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var canUseSpanProvider = context.CompilationProvider.Select(CheckFeaturesAvailability);

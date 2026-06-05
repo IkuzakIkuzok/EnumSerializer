@@ -11,10 +11,7 @@ internal record EnumInfo(INamedTypeSymbol EnumType, IEnumerable<SerializeValueIn
     internal static EnumInfo Create(GeneratorAttributeSyntaxContext context)
     {
         var enumType = (INamedTypeSymbol)context.TargetSymbol;
-        var attrs =
-                context.Attributes.Where(a => a.AttributeClass?.FullName == SerializerGenerator.AttributeFullName)
-                               .Select(SerializeValueInfo.Create)
-                               .OfType<SerializeValueInfo>();
+        var attrs = context.Attributes.SelectNotNull(SerializeValueInfo.Create);
 
         var className = $"{enumType.Name}SerializationExtensions";
 
