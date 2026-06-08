@@ -2,11 +2,10 @@
 // (c) 2026 Kazuki Kohzuki
 
 using EnumSerializer.Utils;
-using System.Collections.Generic;
 
 namespace EnumSerializer.Generators;
 
-internal record EnumInfo(INamedTypeSymbol EnumType, IEnumerable<SerializeValueInfo> SerializeValues, string ExtensionClassName)
+internal record EnumInfo(INamedTypeSymbol EnumType, EquatableArray<SerializeValueInfo> SerializeValues, string ExtensionClassName)
 {
     internal static EnumInfo Create(GeneratorAttributeSyntaxContext context)
     {
@@ -15,7 +14,7 @@ internal record EnumInfo(INamedTypeSymbol EnumType, IEnumerable<SerializeValueIn
 
         var className = $"{enumType.Name}SerializationExtensions";
 
-        return new(enumType, [.. attrs], ToUniqueName(className, enumType.ContainingNamespace.ToDisplayString(), context.SemanticModel.Compilation));
+        return new(enumType, new([.. attrs]), ToUniqueName(className, enumType.ContainingNamespace.ToDisplayString(), context.SemanticModel.Compilation));
     } // internal static EnumInfo Create(GeneratorAttributeSyntaxContext context)
 
     private static string ToUniqueName(string name, string @namespace, Compilation compilation)

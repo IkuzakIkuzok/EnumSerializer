@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace EnumSerializer.Generators;
 
-internal sealed class SerializeValueInfo
+internal sealed class SerializeValueInfo : IEquatable<SerializeValueInfo>
 {
     required internal INamedTypeSymbol AttributeType { get; init; }
 
@@ -88,6 +88,9 @@ internal sealed class SerializeValueInfo
             ExtensionMethodsLocation = methodLocation
         };
     } // internal static SerializeValueInfo? Create (AttributeData, Compilation)
+
+    public bool Equals(SerializeValueInfo other)
+        => EqualityComparer.Default.Equals(this, other);
 
     internal sealed class EqualityComparer : IEqualityComparer<SerializeValueInfo>
     {
